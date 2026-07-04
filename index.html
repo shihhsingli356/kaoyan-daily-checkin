@@ -844,12 +844,14 @@
 
     .breakdown-head strong {
       margin: 0;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.2;
     }
 
     .breakdown-total {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
+      line-height: 1.2;
       white-space: nowrap;
     }
 
@@ -935,13 +937,14 @@
       color: var(--accent-strong);
       padding: 0 10px;
       border: 1px solid transparent;
-      font-size: 12px;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.1;
       font-weight: 800;
     }
 
     .breakdown-chip {
       cursor: pointer;
-      font: inherit;
       transition: transform .18s ease, border-color .18s ease, background .18s ease;
     }
 
@@ -953,8 +956,10 @@
 
     .breakdown-chip small {
       margin-left: 4px;
-      color: var(--muted);
-      font-size: 11px;
+      color: currentColor;
+      font-size: 12px;
+      font-weight: 800;
+      opacity: .72;
     }
 
     .pie-popup-card {
