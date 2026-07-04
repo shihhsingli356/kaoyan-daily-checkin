@@ -312,6 +312,10 @@
       font-size: 12px;
     }
 
+    .phase-progress-details[open] .expand-hint {
+      display: none;
+    }
+
     .syllabus-root {
       margin-top: 14px;
       border: 1px solid var(--line);
@@ -3606,7 +3610,7 @@
     <details class="panel collapsible-panel">
       <summary>
         <div>
-          <strong>今日错题/问题</strong>
+          <strong>错题/问题</strong>
         </div>
       </summary>
       <section id="issuesPanel"></section>
@@ -4975,7 +4979,6 @@
           <div>
             <strong>${phase.name}</strong>
             <p>${phase.start} 至 ${phase.end}</p>
-            <p>${phase.summary}</p>
           </div>
           <span class="mini-status">${phase.activeSubjects.map(item => subjects[item]).join(" / ")}</span>
         </div>
@@ -5208,7 +5211,6 @@
               <span class="phase-pill">${phase.name}</span>
             </div>
             <strong class="daily-date">${key} 周${weekdays[selectedDate.getDay()]}</strong>
-            <p class="daily-summary">先清掉今日任务，再留下错题和明日调整。</p>
             <span class="next-pill">${nextAction}</span>
           </div>
           <div class="daily-meter" aria-label="今日完成概览">
@@ -5390,10 +5392,6 @@
       const groupCounts = Object.fromEntries(subjectOrder.map(subject => [subject, issueCountForSubject(subject)]));
 
       document.getElementById("issuesPanel").innerHTML = `
-        <div class="panel-head">
-          <strong>每日错题/问题页</strong>
-          <p>按科目归档错题和问题。点击月历中的蓝点日期，也能回到当天查看。</p>
-        </div>
         <div class="issue-tabs">
           ${subjectOrder.map(subject => `
             <button class="subject-tab ${subject === selectedIssueGroup ? "active" : ""}" data-issue-group="${subject}">
