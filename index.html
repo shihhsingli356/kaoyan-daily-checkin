@@ -3966,6 +3966,232 @@
         padding-right: 7px;
       }
     }
+
+    .study-timer-panel {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      z-index: 70;
+      width: min(360px, calc(100vw - 24px));
+      max-height: calc(100vh - 44px);
+      border: 1px solid rgba(8, 19, 22, .12);
+      border-right: 0;
+      border-radius: 14px 0 0 14px;
+      background: rgba(255, 253, 248, .96);
+      box-shadow: 0 24px 60px rgba(22, 35, 38, .18);
+      transform: translate(100%, -50%);
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      transition: transform .24s ease, opacity .2s ease;
+      backdrop-filter: blur(16px);
+    }
+
+    .study-timer-panel.open {
+      transform: translate(0, -50%);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .study-timer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(8, 19, 22, .09);
+      background: rgba(248, 246, 239, .78);
+    }
+
+    .study-timer-head strong {
+      color: var(--ink-strong);
+      font-size: 18px;
+    }
+
+    .study-timer-hide {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(8, 19, 22, .12);
+      border-radius: 999px;
+      background: rgba(255, 253, 248, .88);
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .study-timer-body {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+      overflow: auto;
+      max-height: calc(100vh - 118px);
+    }
+
+    .study-timer-time {
+      display: grid;
+      place-items: center;
+      min-height: 118px;
+      border: 1px solid rgba(13, 118, 109, .16);
+      border-radius: 12px;
+      background:
+        linear-gradient(135deg, rgba(13, 118, 109, .08), rgba(189, 143, 46, .08)),
+        rgba(255, 253, 248, .9);
+      color: var(--ink-strong);
+      font-size: 48px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+    }
+
+    .study-timer-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .study-timer-actions button,
+    .study-history-delete {
+      min-height: 38px;
+      border: 1px solid rgba(8, 19, 22, .12);
+      border-radius: 8px;
+      background: #fffdf8;
+      color: var(--ink-strong);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+    }
+
+    .study-timer-actions .primary {
+      border-color: rgba(13, 118, 109, .38);
+      background: var(--accent);
+      color: #fffdf7;
+    }
+
+    .study-timer-actions button:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+    }
+
+    .study-history {
+      display: grid;
+      gap: 8px;
+    }
+
+    .study-history-title {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .study-history-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 50px;
+      border: 1px solid rgba(8, 19, 22, .1);
+      border-radius: 10px;
+      background: rgba(255, 253, 248, .74);
+      padding: 9px 10px 9px 12px;
+    }
+
+    .study-history-row b {
+      display: block;
+      color: var(--ink-strong);
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .study-history-row span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .study-history-delete {
+      width: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 999px;
+      color: var(--red);
+      line-height: 1;
+    }
+
+    .study-history-empty {
+      border: 1px dashed rgba(8, 19, 22, .15);
+      border-radius: 10px;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    html[data-theme="dark"] .study-timer-panel {
+      border-color: rgba(255, 250, 240, .14);
+      background: rgba(27, 40, 37, .98);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .42);
+    }
+
+    html[data-theme="dark"] .study-timer-head {
+      border-color: rgba(255, 250, 240, .12);
+      background: rgba(38, 51, 48, .88);
+    }
+
+    html[data-theme="dark"] .study-timer-hide,
+    html[data-theme="dark"] .study-timer-actions button,
+    html[data-theme="dark"] .study-history-delete,
+    html[data-theme="dark"] .study-history-row {
+      border-color: rgba(255, 250, 240, .15);
+      background: rgba(24, 34, 31, .96);
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .study-timer-actions .primary {
+      background: #3bb9a7;
+      color: #061312;
+    }
+
+    html[data-theme="dark"] .study-timer-time {
+      border-color: rgba(102, 208, 191, .24);
+      background:
+        linear-gradient(135deg, rgba(102, 208, 191, .12), rgba(241, 207, 126, .09)),
+        rgba(24, 34, 31, .96);
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .study-history-delete {
+      color: var(--red);
+    }
+
+    html[data-theme="dark"] .study-history-empty {
+      border-color: rgba(255, 250, 240, .16);
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      .study-timer-panel {
+        top: auto;
+        bottom: 0;
+        width: 100%;
+        max-height: calc(100vh - 18px);
+        border-right: 1px solid rgba(8, 19, 22, .12);
+        border-bottom: 0;
+        border-radius: 18px 18px 0 0;
+        transform: translateY(100%);
+      }
+
+      .study-timer-panel.open {
+        transform: translateY(0);
+      }
+
+      .study-timer-body {
+        max-height: calc(100vh - 102px);
+      }
+    }
   </style>
 </head>
 <body>
@@ -3999,7 +4225,27 @@
   <div class="floating-today">
     <button class="text-btn" id="floatToday">回到今天</button>
     <button class="text-btn" id="floatAllTable">全部表</button>
+    <button class="text-btn" id="floatTimer">计时器</button>
   </div>
+
+  <aside class="study-timer-panel" id="studyTimerPanel" aria-hidden="true" aria-label="学习计时器">
+    <div class="study-timer-head">
+      <strong>学习计时器</strong>
+      <button class="study-timer-hide" id="studyTimerHide" type="button" title="隐藏">×</button>
+    </div>
+    <div class="study-timer-body">
+      <div class="study-timer-time" id="studyTimerDisplay">00:00:00</div>
+      <div class="study-timer-actions">
+        <button class="primary" id="studyTimerStart" type="button">开始</button>
+        <button id="studyTimerPause" type="button">暂停</button>
+        <button id="studyTimerReset" type="button">清零</button>
+      </div>
+      <div class="study-history">
+        <div class="study-history-title">最近记录</div>
+        <div id="studyTimerHistory"></div>
+      </div>
+    </div>
+  </aside>
 
   <main>
     <section class="phase-zone" aria-label="阶段完成区">
@@ -4100,6 +4346,7 @@
     const examDate = new Date("2026-12-19T00:00:00+08:00");
     const storageKey = "kaoyan_daily_checkin_2026_v4";
     const themeStorageKey = "kaoyan_daily_checkin_theme_v1";
+    const studyTimerStorageKey = "kaoyan_daily_checkin_study_timer_v1";
     const cloudConfigKey = "kaoyan_daily_checkin_supabase_config_v1";
     const cloudAutoSyncKey = "kaoyan_daily_checkin_cloud_auto_v1";
     const cloudTableName = "checkin_states";
@@ -4479,6 +4726,8 @@
     let cloudSyncPaused = false;
     let cloudLastSyncedAt = "";
     let cloudMessage = { text: "", tone: "" };
+    let studyTimer = loadStudyTimer();
+    let studyTimerInterval = null;
 
     function dateKey(date) {
       const y = date.getFullYear();
@@ -4520,6 +4769,139 @@
       } catch {
         return {};
       }
+    }
+
+    function loadStudyTimer() {
+      try {
+        const raw = localStorage.getItem(studyTimerStorageKey);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return {
+          elapsedMs: Math.max(0, Number(parsed.elapsedMs || 0)),
+          startedAt: parsed.startedAt ? Number(parsed.startedAt) : null,
+          running: Boolean(parsed.running && parsed.startedAt),
+          history: Array.isArray(parsed.history) ? parsed.history.slice(0, 3) : []
+        };
+      } catch {
+        return { elapsedMs: 0, startedAt: null, running: false, history: [] };
+      }
+    }
+
+    function saveStudyTimer() {
+      localStorage.setItem(studyTimerStorageKey, JSON.stringify(studyTimer));
+    }
+
+    function currentStudyTimerMs() {
+      if (!studyTimer.running || !studyTimer.startedAt) return studyTimer.elapsedMs;
+      return studyTimer.elapsedMs + Math.max(0, Date.now() - studyTimer.startedAt);
+    }
+
+    function formatStudyTimer(ms) {
+      const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function formatStudyTimerDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("zh-CN", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function renderStudyTimer() {
+      const display = document.getElementById("studyTimerDisplay");
+      const startButton = document.getElementById("studyTimerStart");
+      const pauseButton = document.getElementById("studyTimerPause");
+      const history = document.getElementById("studyTimerHistory");
+      if (!display || !startButton || !pauseButton || !history) return;
+
+      display.textContent = formatStudyTimer(currentStudyTimerMs());
+      startButton.textContent = studyTimer.running ? "继续中" : "开始";
+      startButton.disabled = studyTimer.running;
+      pauseButton.disabled = !studyTimer.running;
+      history.innerHTML = studyTimer.history.length ? studyTimer.history.map(item => `
+        <div class="study-history-row">
+          <div>
+            <b>${formatStudyTimer(item.durationMs)}</b>
+            <span>${formatStudyTimerDate(item.finishedAt)}</span>
+          </div>
+          <button class="study-history-delete" type="button" data-study-history-delete="${item.id}" title="删除">×</button>
+        </div>
+      `).join("") : '<div class="study-history-empty">暂无计时记录</div>';
+
+      document.querySelectorAll("[data-study-history-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          studyTimer.history = studyTimer.history.filter(item => item.id !== button.dataset.studyHistoryDelete);
+          saveStudyTimer();
+          renderStudyTimer();
+        });
+      });
+    }
+
+    function startStudyTimerTick() {
+      window.clearInterval(studyTimerInterval);
+      if (!studyTimer.running) return;
+      studyTimerInterval = window.setInterval(renderStudyTimer, 1000);
+    }
+
+    function openStudyTimer() {
+      const panel = document.getElementById("studyTimerPanel");
+      if (!panel) return;
+      panel.classList.add("open");
+      panel.setAttribute("aria-hidden", "false");
+      renderStudyTimer();
+    }
+
+    function closeStudyTimer() {
+      const panel = document.getElementById("studyTimerPanel");
+      if (!panel) return;
+      panel.classList.remove("open");
+      panel.setAttribute("aria-hidden", "true");
+    }
+
+    function startStudyTimer() {
+      if (studyTimer.running) return;
+      studyTimer.running = true;
+      studyTimer.startedAt = Date.now();
+      saveStudyTimer();
+      renderStudyTimer();
+      startStudyTimerTick();
+    }
+
+    function pauseStudyTimer() {
+      if (!studyTimer.running) return;
+      studyTimer.elapsedMs = currentStudyTimerMs();
+      studyTimer.running = false;
+      studyTimer.startedAt = null;
+      saveStudyTimer();
+      renderStudyTimer();
+      startStudyTimerTick();
+    }
+
+    function resetStudyTimer() {
+      const durationMs = currentStudyTimerMs();
+      if (durationMs >= 1000) {
+        studyTimer.history = [
+          {
+            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            durationMs,
+            finishedAt: new Date().toISOString()
+          },
+          ...studyTimer.history
+        ].slice(0, 3);
+      }
+      studyTimer.elapsedMs = 0;
+      studyTimer.running = false;
+      studyTimer.startedAt = null;
+      saveStudyTimer();
+      renderStudyTimer();
+      startStudyTimerTick();
     }
 
     function saveState() {
@@ -6344,6 +6726,11 @@
       openMotionDetails(document.getElementById("allCard"));
       document.getElementById("allCard").scrollIntoView({ behavior: "smooth", block: "start" });
     });
+    document.getElementById("floatTimer").addEventListener("click", openStudyTimer);
+    document.getElementById("studyTimerHide").addEventListener("click", closeStudyTimer);
+    document.getElementById("studyTimerStart").addEventListener("click", startStudyTimer);
+    document.getElementById("studyTimerPause").addEventListener("click", pauseStudyTimer);
+    document.getElementById("studyTimerReset").addEventListener("click", resetStudyTimer);
 
     document.getElementById("exportBtn").addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -6381,6 +6768,8 @@
 
     loadTheme();
     renderAll();
+    renderStudyTimer();
+    startStudyTimerTick();
     initMotionDetails();
     updateMobileMiniVisibility();
     initCloud();
