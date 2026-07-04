@@ -3378,6 +3378,7 @@
       line-height: 1;
       transform: translateY(-50%);
       box-shadow: 0 8px 20px rgba(22, 35, 38, .08);
+      transition: transform .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease;
     }
 
     .cloud-sync[open] > summary::after,
@@ -3385,6 +3386,15 @@
     .syllabus-root[open] > summary::after,
     .all-card[open] > summary::after {
       content: "-";
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .cloud-sync > summary:hover::after,
+    .collapsible-panel > summary:hover::after,
+    .syllabus-root > summary:hover::after,
+    .all-card > summary:hover::after {
+      border-color: rgba(15, 118, 110, .32);
+      box-shadow: 0 10px 24px rgba(15, 118, 110, .12);
     }
 
     .cloud-summary,
@@ -3429,6 +3439,38 @@
         width: 34px;
         height: 34px;
         font-size: 20px;
+      }
+    }
+
+    .motion-details {
+      transition: height .28s cubic-bezier(.22, 1, .36, 1), box-shadow .2s ease, border-color .2s ease;
+      will-change: height;
+    }
+
+    .motion-details[open] > :not(summary) {
+      animation: panel-reveal .22s ease both;
+    }
+
+    @keyframes panel-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-details,
+      .motion-details[open] > :not(summary),
+      .cloud-sync > summary::after,
+      .collapsible-panel > summary::after,
+      .syllabus-root > summary::after,
+      .all-card > summary::after {
+        animation: none !important;
+        transition: none !important;
       }
     }
   </style>
@@ -5476,6 +5518,66 @@
       if (bar) bar.setAttribute("aria-hidden", shouldShow ? "false" : "true");
     }
 
+    function cleanupDetailsMotion(details) {
+      details.style.height = "";
+      details.style.overflow = "";
+      details.classList.remove("is-animating");
+    }
+
+    function openMotionDetails(details) {
+      const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+      if (!summary || details.open) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        details.open = true;
+        return;
+      }
+      details.classList.add("is-animating");
+      details.style.overflow = "hidden";
+      details.style.height = `${summary.offsetHeight}px`;
+      details.open = true;
+      requestAnimationFrame(() => {
+        details.style.height = `${details.scrollHeight}px`;
+      });
+      details.addEventListener("transitionend", event => {
+        if (event.propertyName === "height") cleanupDetailsMotion(details);
+      }, { once: true });
+    }
+
+    function closeMotionDetails(details) {
+      const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+      if (!summary || !details.open) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        details.open = false;
+        return;
+      }
+      details.classList.add("is-animating");
+      details.style.overflow = "hidden";
+      details.style.height = `${details.offsetHeight}px`;
+      requestAnimationFrame(() => {
+        details.style.height = `${summary.offsetHeight}px`;
+      });
+      details.addEventListener("transitionend", event => {
+        if (event.propertyName !== "height") return;
+        details.open = false;
+        cleanupDetailsMotion(details);
+      }, { once: true });
+    }
+
+    function initMotionDetails() {
+      document.querySelectorAll(".cloud-sync, .collapsible-panel, .syllabus-root, .all-card").forEach(details => {
+        if (details.dataset.motionReady) return;
+        const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+        if (!summary) return;
+        details.dataset.motionReady = "true";
+        details.classList.add("motion-details");
+        summary.addEventListener("click", event => {
+          event.preventDefault();
+          if (details.classList.contains("is-animating")) return;
+          details.open ? closeMotionDetails(details) : openMotionDetails(details);
+        });
+      });
+    }
+
     document.getElementById("prevMonth").addEventListener("click", () => {
       visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
       renderCalendar();
@@ -5489,7 +5591,7 @@
     document.getElementById("calendarToday").addEventListener("click", goToday);
     document.getElementById("floatToday").addEventListener("click", goToday);
     document.getElementById("floatAllTable").addEventListener("click", () => {
-      document.getElementById("allCard").open = true;
+      openMotionDetails(document.getElementById("allCard"));
       document.getElementById("allCard").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
@@ -5522,6 +5624,7 @@
 
     loadTheme();
     renderAll();
+    initMotionDetails();
     updateMobileMiniVisibility();
     initCloud();
   </script>
