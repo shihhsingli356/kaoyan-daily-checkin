@@ -2448,6 +2448,40 @@
       border-color: rgba(245, 242, 232, .08);
     }
 
+    html[data-theme="dark"] .syllabus-category,
+    html[data-theme="dark"] .syllabus-subject {
+      border-color: rgba(255, 250, 240, .13);
+      background: rgba(27, 40, 37, .94);
+      box-shadow: none;
+    }
+
+    html[data-theme="dark"] .syllabus-category summary::after,
+    html[data-theme="dark"] .syllabus-subject summary::after {
+      border-color: rgba(102, 208, 191, .34);
+      background: rgba(19, 31, 28, .96);
+      color: var(--accent-strong);
+    }
+
+    html[data-theme="dark"] .syllabus-item {
+      border-color: rgba(255, 250, 240, .12);
+      border-left-color: var(--accent);
+      background:
+        linear-gradient(180deg, rgba(34, 49, 45, .96), rgba(20, 32, 29, .98));
+      color: var(--ink);
+    }
+
+    html[data-theme="dark"] .syllabus-item.core { border-left-color: var(--red); }
+    html[data-theme="dark"] .syllabus-item.important { border-left-color: var(--orange); }
+    html[data-theme="dark"] .syllabus-item.base { border-left-color: var(--accent); }
+
+    html[data-theme="dark"] .syllabus-item strong {
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .syllabus-item p {
+      color: var(--muted);
+    }
+
     html[data-theme="dark"] .daily-meter,
     html[data-theme="dark"] .reminder {
       border-color: rgba(245, 242, 232, .1);
