@@ -3443,12 +3443,12 @@
     }
 
     .motion-details {
-      transition: height .28s cubic-bezier(.22, 1, .36, 1), box-shadow .2s ease, border-color .2s ease;
+      transition: height .46s cubic-bezier(.22, 1, .36, 1), box-shadow .24s ease, border-color .24s ease;
       will-change: height;
     }
 
     .motion-details[open] > :not(summary) {
-      animation: panel-reveal .22s ease both;
+      animation: panel-reveal .34s ease both;
     }
 
     @keyframes panel-reveal {
@@ -4948,6 +4948,7 @@
           phaseDetailOpen = detail.open;
         });
       }
+      initMotionDetails();
     }
 
     function renderSyllabusPanel() {
@@ -5033,6 +5034,7 @@
           </details>
         `).join("")}
       `;
+      initMotionDetails();
     }
 
     function taskTextForDate(key, subject) {
@@ -5475,6 +5477,7 @@
       renderAllPhaseSelect();
       renderAllRows();
       renderCloudPanel();
+      initMotionDetails();
     }
 
     function escapeHtml(text) {
@@ -5518,19 +5521,29 @@
       if (bar) bar.setAttribute("aria-hidden", shouldShow ? "false" : "true");
     }
 
-    function cleanupDetailsMotion(details) {
+    const motionDetailsSelector = ".cloud-sync, .collapsible-panel, .syllabus-root, .all-card, .syllabus-category, .syllabus-subject, .phase-progress-details";
+    const motionDurationMs = 520;
+
+    function getDetailsSummary(details) {
+      return Array.from(details.children).find(child => child.tagName === "SUMMARY");
+    }
+
+    function finishDetailsMotion(details, shouldBeOpen) {
+      window.clearTimeout(details.motionTimer);
+      details.open = shouldBeOpen;
       details.style.height = "";
       details.style.overflow = "";
       details.classList.remove("is-animating");
     }
 
     function openMotionDetails(details) {
-      const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+      const summary = getDetailsSummary(details);
       if (!summary || details.open) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         details.open = true;
         return;
       }
+      window.clearTimeout(details.motionTimer);
       details.classList.add("is-animating");
       details.style.overflow = "hidden";
       details.style.height = `${summary.offsetHeight}px`;
@@ -5538,35 +5551,42 @@
       requestAnimationFrame(() => {
         details.style.height = `${details.scrollHeight}px`;
       });
-      details.addEventListener("transitionend", event => {
-        if (event.propertyName === "height") cleanupDetailsMotion(details);
-      }, { once: true });
+      details.motionTimer = window.setTimeout(() => finishDetailsMotion(details, true), motionDurationMs + 80);
+      const onEnd = event => {
+        if (event.propertyName !== "height" || event.target !== details) return;
+        details.removeEventListener("transitionend", onEnd);
+        finishDetailsMotion(details, true);
+      };
+      details.addEventListener("transitionend", onEnd);
     }
 
     function closeMotionDetails(details) {
-      const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+      const summary = getDetailsSummary(details);
       if (!summary || !details.open) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         details.open = false;
         return;
       }
+      window.clearTimeout(details.motionTimer);
       details.classList.add("is-animating");
       details.style.overflow = "hidden";
-      details.style.height = `${details.offsetHeight}px`;
+      details.style.height = `${details.scrollHeight}px`;
       requestAnimationFrame(() => {
         details.style.height = `${summary.offsetHeight}px`;
       });
-      details.addEventListener("transitionend", event => {
-        if (event.propertyName !== "height") return;
-        details.open = false;
-        cleanupDetailsMotion(details);
-      }, { once: true });
+      details.motionTimer = window.setTimeout(() => finishDetailsMotion(details, false), motionDurationMs + 80);
+      const onEnd = event => {
+        if (event.propertyName !== "height" || event.target !== details) return;
+        details.removeEventListener("transitionend", onEnd);
+        finishDetailsMotion(details, false);
+      };
+      details.addEventListener("transitionend", onEnd);
     }
 
     function initMotionDetails() {
-      document.querySelectorAll(".cloud-sync, .collapsible-panel, .syllabus-root, .all-card").forEach(details => {
+      document.querySelectorAll(motionDetailsSelector).forEach(details => {
         if (details.dataset.motionReady) return;
-        const summary = Array.from(details.children).find(child => child.tagName === "SUMMARY");
+        const summary = getDetailsSummary(details);
         if (!summary) return;
         details.dataset.motionReady = "true";
         details.classList.add("motion-details");
