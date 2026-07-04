@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kaoyan daily check-in">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#17342d"/>
+      <stop offset="1" stop-color="#071410"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="19" y1="17" x2="45" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7d979"/>
+      <stop offset="1" stop-color="#c6902f"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#bg)"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="14.5" fill="none" stroke="#f1cf7e" stroke-opacity=".42" stroke-width="1.5"/>
+  <path d="M18 19h9.2c3.2 0 5.5 1 6.8 3v25c-1.3-2-3.6-3-6.8-3H18V19Z" fill="#f9f3e1"/>
+  <path d="M46 19h-9.2c-3.2 0-5.5 1-6.8 3v25c1.3-2 3.6-3 6.8-3H46V19Z" fill="#e7f4ef"/>
+  <path d="M32 21.5V48" fill="none" stroke="#17342d" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+  <path d="M21 27.5h7M21 33h7M36 27.5h7M36 33h7" fill="none" stroke="#17342d" stroke-opacity=".36" stroke-width="2" stroke-linecap="round"/>
+  <path d="M18 48h28" fill="none" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="46" cy="18" r="5" fill="url(#gold)"/>
+  <path d="M46 13v10M41 18h10" fill="none" stroke="#10231f" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
