@@ -3516,6 +3516,143 @@
         transition: none !important;
       }
     }
+
+    .task-grid {
+      align-items: start;
+    }
+
+    .task {
+      min-height: 0;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task label.check-label {
+      flex: 1 1 auto;
+      align-items: start;
+    }
+
+    .task-copy {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.65;
+    }
+
+    .hours-row {
+      margin-top: 12px;
+      min-height: 40px;
+      align-items: center;
+    }
+
+    .hours-row input[type="number"] {
+      align-self: center;
+    }
+
+    @media (min-width: 981px) {
+      .task-grid {
+        align-items: start;
+      }
+
+      .task {
+        min-height: 158px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .task-copy {
+        -webkit-line-clamp: 4;
+      }
+    }
+
+    .syllabus-category > summary,
+    .syllabus-subject > summary {
+      display: grid;
+      align-items: center;
+      column-gap: 18px;
+    }
+
+    .syllabus-category > summary {
+      grid-template-columns: minmax(0, 1fr) 124px 38px;
+      padding-left: 22px;
+      padding-right: 18px;
+    }
+
+    .syllabus-subject > summary {
+      grid-template-columns: minmax(0, 1fr) 124px 38px;
+      padding-left: 34px;
+      padding-right: 18px;
+    }
+
+    .syllabus-category > summary > div,
+    .syllabus-subject > summary > div {
+      min-width: 0;
+    }
+
+    .syllabus-category > summary p,
+    .syllabus-subject > summary p {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin: 4px 0 0;
+    }
+
+    .syllabus-category > summary .mini-status,
+    .syllabus-subject > summary .mini-status {
+      justify-self: center;
+      min-width: 76px;
+      text-align: center;
+    }
+
+    .syllabus-category > summary::after,
+    .syllabus-subject > summary::after {
+      position: static;
+      justify-self: end;
+      transform: none;
+      grid-column: 3;
+      grid-row: 1 / span 2;
+    }
+
+    .syllabus-category[open] > summary::after,
+    .syllabus-subject[open] > summary::after {
+      transform: none;
+    }
+
+    .syllabus-category-body {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .syllabus-category > summary {
+        grid-template-columns: minmax(0, 1fr) 84px 34px;
+        column-gap: 10px;
+        padding-left: 18px;
+        padding-right: 14px;
+      }
+
+      .syllabus-subject > summary {
+        grid-template-columns: minmax(0, 1fr) 84px 34px;
+        column-gap: 10px;
+        padding-left: 26px;
+        padding-right: 14px;
+      }
+
+      .syllabus-category > summary p,
+      .syllabus-subject > summary p {
+        font-size: 12px;
+      }
+
+      .syllabus-category > summary .mini-status,
+      .syllabus-subject > summary .mini-status {
+        min-width: 64px;
+        padding-left: 7px;
+        padding-right: 7px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -5240,7 +5377,7 @@
               </div>
               <label class="check-label">
                 <input type="checkbox" data-key="${key}" data-subject="${subject}" ${day.tasks[subject] ? "checked" : ""} ${disabledAttr}>
-                <span class="task-copy">${taskTextForDate(key, subject)}</span>
+                <span class="task-copy" title="${escapeHtml(taskTextForDate(key, subject))}">${taskTextForDate(key, subject)}</span>
               </label>
               <div class="hours-row">
                 <span>学习时长，目标 ${phase.targets[subject]}h</span>
