@@ -1224,6 +1224,43 @@
       pointer-events: none;
     }
 
+    .task.completion-flash {
+      animation: task-completion-flash .86s ease both;
+    }
+
+    .daily-card.date-focus-highlight {
+      animation: daily-date-focus .9s ease both;
+    }
+
+    @keyframes task-completion-flash {
+      0% {
+        box-shadow: var(--shadow-soft);
+        transform: translateY(0);
+      }
+      34% {
+        border-color: rgba(241, 207, 126, .86);
+        box-shadow: 0 0 0 4px rgba(241, 207, 126, .16), 0 16px 36px rgba(15, 118, 110, .12);
+        transform: translateY(-2px);
+      }
+      100% {
+        box-shadow: var(--shadow-soft);
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes daily-date-focus {
+      0% {
+        box-shadow: var(--shadow);
+      }
+      35% {
+        border-color: rgba(15, 118, 110, .54);
+        box-shadow: 0 0 0 4px rgba(15, 118, 110, .12), var(--shadow);
+      }
+      100% {
+        box-shadow: var(--shadow);
+      }
+    }
+
     .task-top {
       display: flex;
       justify-content: space-between;
@@ -3468,7 +3505,9 @@
       .cloud-sync > summary::after,
       .collapsible-panel > summary::after,
       .syllabus-root > summary::after,
-      .all-card > summary::after {
+      .all-card > summary::after,
+      .task.completion-flash,
+      .daily-card.date-focus-highlight {
         animation: none !important;
         transition: none !important;
       }
@@ -5131,6 +5170,7 @@
           selectedDate = fromKey(day.dataset.date);
           selectedPhaseName = getPhase(day.dataset.date).name;
           renderAll();
+          playDailyDateFocus();
         });
       });
     }
@@ -5191,7 +5231,7 @@
         ${readOnly ? '<div class="readonly-note">只读预览：登录后可以修改并同步。</div>' : ""}
         <div class="task-grid">
           ${active.map(subject => `
-            <article class="task subject-${subject} ${day.tasks[subject] ? "is-done" : "is-open"}">
+            <article class="task subject-${subject} ${day.tasks[subject] ? "is-done" : "is-open"}" data-task-key="${key}" data-task-subject="${subject}">
               <div class="task-top">
                 <span class="task-title">${subjects[subject]}</span>
                 <span class="task-state">${day.tasks[subject] ? "已完成" : "待完成"}</span>
@@ -5266,6 +5306,7 @@
           if (!dayDone(key)) day.completedAt = "";
           saveState();
           renderAll();
+          if (event.target.checked) playTaskCompletion(key, subject);
         });
       });
 
@@ -5519,6 +5560,27 @@
       const shouldShow = isMobile && window.scrollY > Math.max(180, headerHeight - 24);
       document.body.classList.toggle("mobile-mini-visible", shouldShow);
       if (bar) bar.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+    }
+
+    function restartAnimation(element, className) {
+      if (!element || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      element.classList.remove(className);
+      void element.offsetWidth;
+      element.classList.add(className);
+      element.addEventListener("animationend", () => element.classList.remove(className), { once: true });
+    }
+
+    function playTaskCompletion(key, subject) {
+      requestAnimationFrame(() => {
+        const selector = `[data-task-key="${key}"][data-task-subject="${subject}"]`;
+        restartAnimation(document.querySelector(selector), "completion-flash");
+      });
+    }
+
+    function playDailyDateFocus() {
+      requestAnimationFrame(() => {
+        restartAnimation(document.getElementById("dailyCard"), "date-focus-highlight");
+      });
     }
 
     const motionDetailsSelector = ".cloud-sync, .collapsible-panel, .syllabus-root, .all-card, .syllabus-category, .syllabus-subject, .phase-progress-details";
