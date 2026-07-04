@@ -3202,6 +3202,133 @@
         width: 100%;
       }
     }
+
+    .mobile-mini-bar {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      header {
+        position: static;
+        top: auto;
+      }
+
+      header .wrap {
+        padding: 22px 16px 16px;
+      }
+
+      .topbar {
+        gap: 16px;
+      }
+
+      .stats {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 0 2px 6px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+      }
+
+      .stats::-webkit-scrollbar {
+        display: none;
+      }
+
+      .stat {
+        flex: 0 0 138px;
+        min-height: 68px;
+        scroll-snap-align: start;
+      }
+
+      .mobile-mini-bar {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(8px + env(safe-area-inset-top));
+        z-index: 80;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 46px;
+        padding: 8px 12px;
+        border: 1px solid rgba(8, 19, 22, .13);
+        border-radius: 999px;
+        background: rgba(255, 253, 248, .9);
+        box-shadow: 0 14px 34px rgba(22, 35, 38, .14);
+        backdrop-filter: blur(16px);
+        transform: translateY(calc(-120% - env(safe-area-inset-top)));
+        opacity: 0;
+        pointer-events: none;
+        transition: transform .2s ease, opacity .2s ease;
+      }
+
+      body.mobile-mini-visible .mobile-mini-bar {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .mobile-mini-main {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .mobile-mini-main strong {
+        color: var(--ink-strong);
+        font-size: 14px;
+        line-height: 1.15;
+      }
+
+      .mobile-mini-main span,
+      .mobile-mini-days {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .mobile-mini-days {
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(15, 118, 110, .09);
+        color: var(--accent-strong);
+        font-weight: 800;
+      }
+
+      .phase-zone,
+      .daily-card,
+      .calendar-card,
+      .collapsible-panel,
+      .syllabus-root,
+      .all-card {
+        scroll-margin-top: calc(62px + env(safe-area-inset-top));
+      }
+
+      .floating-today {
+        right: 12px;
+        bottom: calc(86px + env(safe-area-inset-bottom));
+      }
+
+      .floating-today .text-btn {
+        min-height: 40px;
+        padding: 0 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      html[data-theme="dark"] .mobile-mini-bar {
+        border-color: rgba(255, 250, 240, .13);
+        background: rgba(18, 30, 27, .88);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, .38);
+      }
+
+      html[data-theme="dark"] .mobile-mini-days {
+        background: rgba(241, 207, 126, .14);
+        color: #f1cf7e;
+      }
+    }
   </style>
 </head>
 <body>
@@ -3223,6 +3350,14 @@
       </div>
     </div>
   </header>
+
+  <div class="mobile-mini-bar" id="mobileMiniBar" aria-hidden="true">
+    <div class="mobile-mini-main">
+      <strong>考研打卡</strong>
+      <span id="mobileMiniMeta">今日 0/0 · 总完成 0%</span>
+    </div>
+    <b class="mobile-mini-days" id="mobileMiniDays">距考试 - 天</b>
+  </div>
 
   <div class="floating-today">
     <button class="text-btn" id="floatToday">回到今天</button>
@@ -4456,11 +4591,20 @@
       }
 
       const daysLeft = Math.max(0, Math.ceil((examDate - new Date()) / 86400000));
-      document.getElementById("overallRate").textContent = `${Math.round(doneTasks / totalTasks * 100)}%`;
+      const overallRate = Math.round(doneTasks / totalTasks * 100);
+      document.getElementById("overallRate").textContent = `${overallRate}%`;
       document.getElementById("doneDays").textContent = doneDays;
       document.getElementById("missedDays").textContent = missedDays;
       document.getElementById("daysLeft").textContent = daysLeft;
       document.getElementById("totalDays").textContent = totalDays;
+
+      const todayActive = activeSubjectsFor(todayKey);
+      const todayDay = ensureDay(todayKey);
+      const todayDone = todayActive.filter(subject => todayDay.tasks[subject]).length;
+      const mobileMiniMeta = document.getElementById("mobileMiniMeta");
+      const mobileMiniDays = document.getElementById("mobileMiniDays");
+      if (mobileMiniMeta) mobileMiniMeta.textContent = `今日 ${todayDone}/${todayActive.length} · 总完成 ${overallRate}%`;
+      if (mobileMiniDays) mobileMiniDays.textContent = `距考试 ${daysLeft} 天`;
     }
 
     function renderHourStats() {
@@ -5221,6 +5365,15 @@
       document.getElementById("dailyCard").scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
+    function updateMobileMiniVisibility() {
+      const bar = document.getElementById("mobileMiniBar");
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const headerHeight = document.querySelector("header")?.offsetHeight || 260;
+      const shouldShow = isMobile && window.scrollY > Math.max(180, headerHeight - 24);
+      document.body.classList.toggle("mobile-mini-visible", shouldShow);
+      if (bar) bar.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+    }
+
     document.getElementById("prevMonth").addEventListener("click", () => {
       visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
       renderCalendar();
@@ -5262,8 +5415,12 @@
       applyTheme(nextTheme);
     });
 
+    window.addEventListener("scroll", updateMobileMiniVisibility, { passive: true });
+    window.addEventListener("resize", updateMobileMiniVisibility);
+
     loadTheme();
     renderAll();
+    updateMobileMiniVisibility();
     initCloud();
   </script>
 </body>
