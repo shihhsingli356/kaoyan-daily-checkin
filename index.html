@@ -3758,6 +3758,11 @@
       renderCloudPanel();
     }
 
+    function renderAfterAuthChange() {
+      renderCloudPanel();
+      renderAll();
+    }
+
     function renderCloudPanel() {
       const panel = document.getElementById("cloudPanel");
       const summary = document.getElementById("cloudSummary");
@@ -3911,7 +3916,7 @@
       cloudSession = data.session;
       const authChange = cloudClient.auth.onAuthStateChange((_event, session) => {
         cloudSession = session;
-        renderCloudPanel();
+        renderAfterAuthChange();
         if (!cloudSession || !cloudSession.user) loadPublicSnapshot();
       });
       cloudAuthSubscription = authChange.data && authChange.data.subscription;
@@ -3961,6 +3966,7 @@
       }
       cloudSession = data.session || cloudSession;
       if (cloudSession) {
+        renderAll();
         await inspectCloudAfterLogin();
       } else {
         setCloudMessage("注册成功，请按 Supabase 邮件确认后再登录。", "ok");
@@ -3982,6 +3988,7 @@
         return;
       }
       cloudSession = data.session;
+      renderAll();
       await inspectCloudAfterLogin();
     }
 
@@ -3994,6 +4001,8 @@
       }
       cloudSession = null;
       setCloudMessage("已退出登录。", "warn");
+      await loadPublicSnapshot();
+      renderAll();
     }
 
     async function inspectCloudAfterLogin() {
