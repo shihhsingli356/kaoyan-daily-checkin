@@ -1,5 +1,7 @@
 outputs/
 work/
 .agents/
+cloudflare-dist/
+.wrangler/
 .DS_Store
 Thumbs.db
