@@ -718,7 +718,7 @@
 
     .pie-layout {
       display: grid;
-      grid-template-columns: 180px 1fr;
+      grid-template-columns: 180px 190px minmax(260px, 1fr);
       gap: 18px;
       align-items: center;
     }
@@ -758,6 +758,203 @@
       gap: 8px;
       font-size: 13px;
       color: var(--muted);
+    }
+
+    .pie-subjects {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .pie-subject-button {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 253, 248, .88);
+      color: var(--muted);
+      padding: 0 12px;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .pie-subject-button span {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      font-weight: 800;
+    }
+
+    .pie-subject-button b {
+      color: var(--ink-strong);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .pie-subject-button:hover,
+    .pie-subject-button.active {
+      border-color: rgba(15, 118, 110, .38);
+      background: rgba(15, 118, 110, .08);
+      color: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    .hour-breakdown-panel {
+      min-height: 210px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .72);
+      padding: 12px;
+    }
+
+    .breakdown-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .breakdown-head strong {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .breakdown-total {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .breakdown-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .breakdown-item {
+      display: inline-grid;
+      grid-template-columns: minmax(82px, 1fr) 70px 24px;
+      gap: 6px;
+      align-items: center;
+      max-width: 280px;
+      border: 1px solid rgba(8, 19, 22, .11);
+      border-radius: 999px;
+      background: rgba(255, 253, 248, .92);
+      padding: 5px 6px 5px 10px;
+    }
+
+    .breakdown-item input {
+      min-width: 0;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      outline: 0;
+    }
+
+    .breakdown-item input[type="number"] {
+      width: 70px;
+      border-left: 1px solid var(--line);
+      border-radius: 0;
+      text-align: right;
+    }
+
+    .breakdown-delete,
+    .breakdown-add {
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, .84);
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .breakdown-delete {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      line-height: 1;
+    }
+
+    .breakdown-add {
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 0 12px;
+      font-weight: 800;
+    }
+
+    .breakdown-other {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, .08);
+      color: var(--accent-strong);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .breakdown-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    html[data-theme="dark"] .pie-subject-button,
+    html[data-theme="dark"] .hour-breakdown-panel,
+    html[data-theme="dark"] .breakdown-item,
+    html[data-theme="dark"] .breakdown-add,
+    html[data-theme="dark"] .breakdown-delete {
+      border-color: rgba(255, 250, 240, .13);
+      background: rgba(27, 40, 37, .96);
+      color: var(--ink);
+    }
+
+    html[data-theme="dark"] .pie-subject-button:hover,
+    html[data-theme="dark"] .pie-subject-button.active {
+      border-color: rgba(102, 208, 191, .46);
+      background: rgba(102, 208, 191, .14);
+      color: var(--accent-strong);
+    }
+
+    html[data-theme="dark"] .breakdown-item input {
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .breakdown-other {
+      background: rgba(241, 207, 126, .13);
+      color: #f1cf7e;
+    }
+
+    @media (max-width: 980px) {
+      .pie-layout {
+        grid-template-columns: 170px minmax(150px, .75fr) minmax(220px, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .pie-layout {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+      }
+
+      .pie {
+        justify-self: center;
+      }
+
+      .pie-subjects {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     .calendar-head {
@@ -4148,6 +4345,7 @@
     let phaseDetailOpen = false;
     let allTablePhaseName = selectedPhaseName;
     let selectedHourRange = "week";
+    let selectedHourSubject = "cs";
     let selectedDailyIssueSubject = "cs";
     let selectedDailyIssueCategoryBySubject = { ...legacyIssueCategory };
     let selectedIssueGroup = "cs";
@@ -4209,6 +4407,31 @@
     function saveState() {
       localStorage.setItem(storageKey, JSON.stringify(state));
       scheduleCloudSync();
+    }
+
+    function ensureMeta() {
+      if (!state.__meta || typeof state.__meta !== "object" || Array.isArray(state.__meta)) state.__meta = {};
+      if (!state.__meta.hourBreakdowns || typeof state.__meta.hourBreakdowns !== "object") state.__meta.hourBreakdowns = {};
+      return state.__meta;
+    }
+
+    function hourBreakdownRangeKey(rangeKey, range) {
+      return `${rangeKey}:${dateKey(range.start)}:${dateKey(range.end)}`;
+    }
+
+    function ensureHourBreakdown(rangeKey, range, subject) {
+      const meta = ensureMeta();
+      const key = hourBreakdownRangeKey(rangeKey, range);
+      if (!meta.hourBreakdowns[key]) meta.hourBreakdowns[key] = {};
+      if (!Array.isArray(meta.hourBreakdowns[key][subject])) meta.hourBreakdowns[key][subject] = [];
+      meta.hourBreakdowns[key][subject] = meta.hourBreakdowns[key][subject]
+        .filter(item => item && typeof item === "object")
+        .map(item => ({
+          id: item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          label: typeof item.label === "string" ? item.label : "",
+          hours: Math.max(0, Number(item.hours || 0))
+        }));
+      return meta.hourBreakdowns[key][subject];
     }
 
     function loadCloudConfig() {
@@ -4961,11 +5184,15 @@
               <div class="pie" style="background:${pieGradient(totals)}">
                 <div class="pie-total"><span>总计</span><b>${formatHour(totalHours)}</b><span>小时</span></div>
               </div>
-              <div class="pie-legend">
+              <div class="pie-subjects" aria-label="学科选择">
                 ${subjectOrder.map(subject => `
-                  <div><i class="hour-color" style="background:${subjectColors[subject]}"></i>${subjects[subject]}：${formatHour(totals[subject])}h</div>
+                  <button class="pie-subject-button ${subject === selectedHourSubject ? "active" : ""}" data-hour-subject="${subject}">
+                    <span><i class="hour-color" style="background:${subjectColors[subject]}"></i>${subjects[subject]}</span>
+                    <b>${formatHour(totals[subject])}h</b>
+                  </button>
                 `).join("")}
               </div>
+              ${renderHourBreakdownEditor(selectedHourRange, range, selectedHourSubject, totals[selectedHourSubject])}
             </div>
           </article>
         </div>
@@ -4974,6 +5201,108 @@
       document.querySelectorAll("[data-hour-range]").forEach(button => {
         button.addEventListener("click", () => {
           selectedHourRange = button.dataset.hourRange;
+          renderHourStats();
+        });
+      });
+      document.querySelectorAll("[data-hour-subject]").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedHourSubject = button.dataset.hourSubject;
+          renderHourStats();
+        });
+      });
+      attachHourBreakdownEvents(range, totals);
+    }
+
+    function hourBreakdownAllocated(items) {
+      return items.reduce((sum, item) => sum + Math.max(0, Number(item.hours || 0)), 0);
+    }
+
+    function normalizeHourBreakdown(items, subjectTotal) {
+      let remaining = Math.max(0, Number(subjectTotal || 0));
+      items.forEach(item => {
+        const nextHours = Math.min(Math.max(0, Number(item.hours || 0)), remaining);
+        item.hours = Number(nextHours.toFixed(2));
+        remaining -= nextHours;
+      });
+    }
+
+    function renderHourBreakdownEditor(rangeKey, range, subject, subjectTotal) {
+      const items = ensureHourBreakdown(rangeKey, range, subject);
+      normalizeHourBreakdown(items, subjectTotal);
+      const allocated = hourBreakdownAllocated(items);
+      const otherHours = Math.max(0, subjectTotal - allocated);
+      const disabledAttr = canEditState() ? "" : "disabled";
+      return `
+        <div class="hour-breakdown-panel" data-breakdown-panel="${subject}">
+          <div class="breakdown-head">
+            <strong>${subjects[subject]}拆分</strong>
+            <span class="breakdown-total">已分配 ${formatHour(allocated)}h / ${formatHour(subjectTotal)}h</span>
+          </div>
+          <div class="breakdown-list">
+            ${items.map(item => `
+              <div class="breakdown-item">
+                <input type="text" value="${escapeHtml(item.label)}" placeholder="标签" data-breakdown-label="${item.id}" ${disabledAttr}>
+                <input type="number" min="0" step="0.25" value="${item.hours || ""}" data-breakdown-hours="${item.id}" ${disabledAttr}>
+                <button class="breakdown-delete" type="button" data-breakdown-delete="${item.id}" title="删除" ${disabledAttr}>×</button>
+              </div>
+            `).join("")}
+            <span class="breakdown-other">其他 ${formatHour(otherHours)}h</span>
+            <button class="breakdown-add" type="button" data-breakdown-add="${subject}" ${disabledAttr}>＋ 新建标签</button>
+          </div>
+          <div class="breakdown-note">标签时长总和不能超过当前科目的统计时长，未分配部分自动计入“其他”。</div>
+        </div>
+      `;
+    }
+
+    function attachHourBreakdownEvents(range, totals) {
+      const items = ensureHourBreakdown(selectedHourRange, range, selectedHourSubject);
+      const subjectTotal = totals[selectedHourSubject] || 0;
+      normalizeHourBreakdown(items, subjectTotal);
+      document.querySelectorAll("[data-breakdown-add]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (!guardEdit()) return;
+          const currentAllocated = hourBreakdownAllocated(items);
+          const remaining = Math.max(0, subjectTotal - currentAllocated);
+          items.push({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            label: "新标签",
+            hours: Math.min(remaining, 0.5)
+          });
+          saveState();
+          renderHourStats();
+        });
+      });
+      document.querySelectorAll("[data-breakdown-label]").forEach(input => {
+        input.addEventListener("change", event => {
+          if (!guardEdit()) return;
+          const item = items.find(entry => entry.id === event.target.dataset.breakdownLabel);
+          if (!item) return;
+          item.label = event.target.value.trim() || "未命名";
+          saveState();
+          renderHourStats();
+        });
+      });
+      document.querySelectorAll("[data-breakdown-hours]").forEach(input => {
+        input.addEventListener("change", event => {
+          if (!guardEdit()) return;
+          const item = items.find(entry => entry.id === event.target.dataset.breakdownHours);
+          if (!item) return;
+          const requested = Math.max(0, Number(event.target.value || 0));
+          const othersTotal = items
+            .filter(entry => entry.id !== item.id)
+            .reduce((sum, entry) => sum + Math.max(0, Number(entry.hours || 0)), 0);
+          item.hours = Math.min(requested, Math.max(0, subjectTotal - othersTotal));
+          saveState();
+          renderHourStats();
+        });
+      });
+      document.querySelectorAll("[data-breakdown-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (!guardEdit()) return;
+          const index = items.findIndex(entry => entry.id === button.dataset.breakdownDelete);
+          if (index < 0) return;
+          items.splice(index, 1);
+          saveState();
           renderHourStats();
         });
       });
