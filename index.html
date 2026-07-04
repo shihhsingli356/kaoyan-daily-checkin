@@ -718,24 +718,41 @@
 
     .pie-layout {
       display: grid;
-      grid-template-columns: 180px 190px minmax(260px, 1fr);
-      gap: 18px;
+      grid-template-columns: 164px 128px minmax(0, 1fr);
+      gap: 14px;
       align-items: center;
+      min-width: 0;
     }
 
     .pie {
-      width: 170px;
-      height: 170px;
+      width: 156px;
+      height: 156px;
       border-radius: 50%;
       display: grid;
       place-items: center;
+      border: 0;
       background: #e5eaf3;
       box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .08);
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .pie:hover {
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .1), 0 14px 28px rgba(15, 118, 110, .12);
+    }
+
+    .pie-wrap {
+      position: relative;
+      width: 156px;
+      min-width: 0;
     }
 
     .pie-total {
-      width: 94px;
-      height: 94px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
       display: grid;
       place-items: center;
@@ -749,7 +766,7 @@
     .pie-total b {
       display: block;
       color: var(--ink);
-      font-size: 22px;
+      font-size: 20px;
       line-height: 1.1;
     }
 
@@ -762,23 +779,25 @@
 
     .pie-subjects {
       display: grid;
-      gap: 8px;
+      gap: 7px;
       align-content: center;
+      min-width: 0;
     }
 
     .pie-subject-button {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 6px;
       align-items: center;
-      min-height: 38px;
+      min-height: 30px;
       border: 1px solid var(--line);
       border-radius: 999px;
       background: rgba(255, 253, 248, .88);
       color: var(--muted);
-      padding: 0 12px;
+      padding: 0 9px;
       cursor: pointer;
       font: inherit;
+      font-size: 12px;
       text-align: left;
       transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
     }
@@ -792,7 +811,7 @@
 
     .pie-subject-button b {
       color: var(--ink-strong);
-      font-size: 13px;
+      font-size: 12px;
       white-space: nowrap;
     }
 
@@ -805,70 +824,74 @@
     }
 
     .hour-breakdown-panel {
-      min-height: 210px;
+      min-height: 156px;
+      min-width: 0;
+      box-sizing: border-box;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: rgba(255, 253, 248, .72);
-      padding: 12px;
+      padding: 10px;
+      overflow: visible;
     }
 
     .breakdown-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .breakdown-head strong {
       margin: 0;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .breakdown-total {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       white-space: nowrap;
     }
 
     .breakdown-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
 
     .breakdown-item {
       display: inline-grid;
-      grid-template-columns: minmax(82px, 1fr) 70px 24px;
-      gap: 6px;
+      grid-template-columns: minmax(46px, 86px) 48px 22px 22px;
+      gap: 4px;
       align-items: center;
-      max-width: 280px;
+      max-width: 192px;
       border: 1px solid rgba(8, 19, 22, .11);
       border-radius: 999px;
       background: rgba(255, 253, 248, .92);
-      padding: 5px 6px 5px 10px;
+      padding: 3px 4px 3px 9px;
     }
 
     .breakdown-item input {
       min-width: 0;
-      height: 28px;
+      height: 22px;
       border: 0;
       background: transparent;
       color: var(--ink);
       font: inherit;
-      font-size: 13px;
+      font-size: 12px;
       outline: 0;
     }
 
     .breakdown-item input[type="number"] {
-      width: 70px;
+      width: 48px;
       border-left: 1px solid var(--line);
       border-radius: 0;
       text-align: right;
     }
 
     .breakdown-delete,
+    .breakdown-confirm,
     .breakdown-add {
       border: 1px solid var(--line);
       background: rgba(255, 253, 248, .84);
@@ -877,44 +900,117 @@
       font: inherit;
     }
 
-    .breakdown-delete {
-      width: 24px;
-      height: 24px;
+    .breakdown-delete,
+    .breakdown-confirm {
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       line-height: 1;
+      display: inline-grid;
+      place-items: center;
+      font-weight: 900;
+      padding: 0;
+    }
+
+    .breakdown-confirm {
+      background: rgba(15, 118, 110, .1);
+      color: var(--accent-strong);
     }
 
     .breakdown-add {
-      min-height: 34px;
+      min-height: 28px;
       border-radius: 999px;
-      padding: 0 12px;
+      padding: 0 10px;
       font-weight: 800;
+      font-size: 12px;
     }
 
+    .breakdown-chip,
     .breakdown-other {
       display: inline-flex;
       align-items: center;
-      min-height: 34px;
+      min-height: 28px;
       border-radius: 999px;
       background: rgba(15, 118, 110, .08);
       color: var(--accent-strong);
-      padding: 0 12px;
-      font-size: 13px;
+      padding: 0 10px;
+      border: 1px solid transparent;
+      font-size: 12px;
       font-weight: 800;
     }
 
-    .breakdown-note {
-      margin-top: 10px;
+    .breakdown-chip {
+      cursor: pointer;
+      font: inherit;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .breakdown-chip:hover {
+      border-color: rgba(15, 118, 110, .25);
+      background: rgba(15, 118, 110, .12);
+      transform: translateY(-1px);
+    }
+
+    .breakdown-chip small {
+      margin-left: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .pie-popup-card {
+      position: absolute;
+      left: 126px;
+      top: 12px;
+      z-index: 5;
+      width: 210px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .96);
+      box-shadow: 0 18px 44px rgba(8, 19, 22, .14);
+      padding: 10px;
+      text-align: left;
+    }
+
+    .pie-popup-card strong {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .pie-popup-card strong span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .pie-popup-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .pie-popup-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.5;
+    }
+
+    .pie-popup-row b {
+      color: var(--ink-strong);
+      font-weight: 800;
     }
 
     html[data-theme="dark"] .pie-subject-button,
     html[data-theme="dark"] .hour-breakdown-panel,
     html[data-theme="dark"] .breakdown-item,
+    html[data-theme="dark"] .breakdown-chip,
     html[data-theme="dark"] .breakdown-add,
-    html[data-theme="dark"] .breakdown-delete {
+    html[data-theme="dark"] .breakdown-delete,
+    html[data-theme="dark"] .breakdown-confirm,
+    html[data-theme="dark"] .pie-popup-card {
       border-color: rgba(255, 250, 240, .13);
       background: rgba(27, 40, 37, .96);
       color: var(--ink);
@@ -936,9 +1032,13 @@
       color: #f1cf7e;
     }
 
+    html[data-theme="dark"] .pie-popup-card {
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .35);
+    }
+
     @media (max-width: 980px) {
       .pie-layout {
-        grid-template-columns: 170px minmax(150px, .75fr) minmax(220px, 1fr);
+        grid-template-columns: 156px minmax(112px, .48fr) minmax(0, 1fr);
       }
     }
 
@@ -952,8 +1052,19 @@
         justify-self: center;
       }
 
+      .pie-wrap {
+        justify-self: center;
+      }
+
       .pie-subjects {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .pie-popup-card {
+        left: 50%;
+        top: 124px;
+        transform: translateX(-50%);
+        width: min(230px, calc(100vw - 64px));
       }
     }
 
@@ -4346,6 +4457,8 @@
     let allTablePhaseName = selectedPhaseName;
     let selectedHourRange = "week";
     let selectedHourSubject = "cs";
+    let editingBreakdownId = null;
+    let activePiePopupSubject = null;
     let selectedDailyIssueSubject = "cs";
     let selectedDailyIssueCategoryBySubject = { ...legacyIssueCategory };
     let selectedIssueGroup = "cs";
@@ -5181,8 +5294,11 @@
           <article class="pie-card">
             <strong>学科占比</strong>
             <div class="pie-layout">
-              <div class="pie" style="background:${pieGradient(totals)}">
-                <div class="pie-total"><span>总计</span><b>${formatHour(totalHours)}</b><span>小时</span></div>
+              <div class="pie-wrap">
+                <button class="pie" type="button" data-hour-pie style="background:${pieGradient(totals)}" aria-label="查看学科占比明细">
+                  <div class="pie-total"><span>总计</span><b>${formatHour(totalHours)}</b><span>小时</span></div>
+                </button>
+                ${activePiePopupSubject ? renderPiePopup(selectedHourRange, range, activePiePopupSubject, totals[activePiePopupSubject]) : ""}
               </div>
               <div class="pie-subjects" aria-label="学科选择">
                 ${subjectOrder.map(subject => `
@@ -5207,9 +5323,20 @@
       document.querySelectorAll("[data-hour-subject]").forEach(button => {
         button.addEventListener("click", () => {
           selectedHourSubject = button.dataset.hourSubject;
+          editingBreakdownId = null;
           renderHourStats();
         });
       });
+      const pie = document.querySelector("[data-hour-pie]");
+      if (pie) {
+        pie.addEventListener("click", event => {
+          const subject = subjectFromPieClick(event, totals);
+          selectedHourSubject = subject;
+          activePiePopupSubject = activePiePopupSubject === subject ? null : subject;
+          editingBreakdownId = null;
+          renderHourStats();
+        });
+      }
       attachHourBreakdownEvents(range, totals);
     }
 
@@ -5226,6 +5353,56 @@
       });
     }
 
+    function subjectFromPieClick(event, totals) {
+      const total = subjectOrder.reduce((sum, subject) => sum + Math.max(0, Number(totals[subject] || 0)), 0);
+      if (!total) return selectedHourSubject;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = event.clientX - rect.left - rect.width / 2;
+      const y = event.clientY - rect.top - rect.height / 2;
+      const angle = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360;
+      const target = angle / 360 * total;
+      let cursor = 0;
+      for (const subject of subjectOrder) {
+        cursor += Math.max(0, Number(totals[subject] || 0));
+        if (target <= cursor) return subject;
+      }
+      return subjectOrder[subjectOrder.length - 1];
+    }
+
+    function breakdownRowsForDisplay(rangeKey, range, subject, subjectTotal) {
+      const items = ensureHourBreakdown(rangeKey, range, subject);
+      normalizeHourBreakdown(items, subjectTotal);
+      const rows = items
+        .filter(item => Number(item.hours || 0) > 0)
+        .map(item => ({
+          label: item.label || "未命名",
+          hours: Number(item.hours || 0)
+        }));
+      const otherHours = Math.max(0, subjectTotal - hourBreakdownAllocated(items));
+      if (otherHours > 0 || rows.length === 0) rows.push({ label: "其他", hours: otherHours });
+      return rows;
+    }
+
+    function renderPiePopup(rangeKey, range, subject, subjectTotal) {
+      const rows = breakdownRowsForDisplay(rangeKey, range, subject, subjectTotal);
+      return `
+        <div class="pie-popup-card" data-pie-popup>
+          <strong>${subjects[subject]}<span>${formatHour(subjectTotal)}h</span></strong>
+          <div class="pie-popup-list">
+            ${rows.map(row => {
+              const percent = subjectTotal > 0 ? Math.round(row.hours / subjectTotal * 100) : 0;
+              return `
+                <div class="pie-popup-row">
+                  <span>${escapeHtml(row.label)}</span>
+                  <b>${formatHour(row.hours)}h · ${percent}%</b>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
     function renderHourBreakdownEditor(rangeKey, range, subject, subjectTotal) {
       const items = ensureHourBreakdown(rangeKey, range, subject);
       normalizeHourBreakdown(items, subjectTotal);
@@ -5239,17 +5416,27 @@
             <span class="breakdown-total">已分配 ${formatHour(allocated)}h / ${formatHour(subjectTotal)}h</span>
           </div>
           <div class="breakdown-list">
-            ${items.map(item => `
-              <div class="breakdown-item">
-                <input type="text" value="${escapeHtml(item.label)}" placeholder="标签" data-breakdown-label="${item.id}" ${disabledAttr}>
-                <input type="number" min="0" step="0.25" value="${item.hours || ""}" data-breakdown-hours="${item.id}" ${disabledAttr}>
-                <button class="breakdown-delete" type="button" data-breakdown-delete="${item.id}" title="删除" ${disabledAttr}>×</button>
-              </div>
-            `).join("")}
+            ${items.map(item => {
+              const editing = editingBreakdownId === item.id;
+              if (!editing) {
+                return `
+                  <button class="breakdown-chip" type="button" data-breakdown-edit="${item.id}" ${disabledAttr}>
+                    ${escapeHtml(item.label || "未命名")} <small>${formatHour(item.hours)}h</small>
+                  </button>
+                `;
+              }
+              return `
+                <div class="breakdown-item">
+                  <input type="text" value="${escapeHtml(item.label)}" placeholder="标签" data-breakdown-label="${item.id}" ${disabledAttr}>
+                  <input type="number" min="0" step="0.25" value="${item.hours || ""}" data-breakdown-hours="${item.id}" ${disabledAttr}>
+                  <button class="breakdown-confirm" type="button" data-breakdown-confirm="${item.id}" title="确认" ${disabledAttr}>✓</button>
+                  <button class="breakdown-delete" type="button" data-breakdown-delete="${item.id}" title="删除" ${disabledAttr}>×</button>
+                </div>
+              `;
+            }).join("")}
             <span class="breakdown-other">其他 ${formatHour(otherHours)}h</span>
             <button class="breakdown-add" type="button" data-breakdown-add="${subject}" ${disabledAttr}>＋ 新建标签</button>
           </div>
-          <div class="breakdown-note">标签时长总和不能超过当前科目的统计时长，未分配部分自动计入“其他”。</div>
         </div>
       `;
     }
@@ -5263,37 +5450,48 @@
           if (!guardEdit()) return;
           const currentAllocated = hourBreakdownAllocated(items);
           const remaining = Math.max(0, subjectTotal - currentAllocated);
+          const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
           items.push({
-            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            label: "新标签",
+            id,
+            label: "",
             hours: Math.min(remaining, 0.5)
           });
+          editingBreakdownId = id;
           saveState();
           renderHourStats();
         });
       });
-      document.querySelectorAll("[data-breakdown-label]").forEach(input => {
-        input.addEventListener("change", event => {
+      document.querySelectorAll("[data-breakdown-edit]").forEach(button => {
+        button.addEventListener("click", () => {
           if (!guardEdit()) return;
-          const item = items.find(entry => entry.id === event.target.dataset.breakdownLabel);
-          if (!item) return;
-          item.label = event.target.value.trim() || "未命名";
-          saveState();
+          editingBreakdownId = button.dataset.breakdownEdit;
           renderHourStats();
         });
       });
-      document.querySelectorAll("[data-breakdown-hours]").forEach(input => {
-        input.addEventListener("change", event => {
+      document.querySelectorAll("[data-breakdown-confirm]").forEach(button => {
+        button.addEventListener("click", () => {
           if (!guardEdit()) return;
-          const item = items.find(entry => entry.id === event.target.dataset.breakdownHours);
+          const item = items.find(entry => entry.id === button.dataset.breakdownConfirm);
           if (!item) return;
-          const requested = Math.max(0, Number(event.target.value || 0));
+          const row = button.closest(".breakdown-item");
+          const labelInput = row?.querySelector("[data-breakdown-label]");
+          const hourInput = row?.querySelector("[data-breakdown-hours]");
+          const requested = Math.max(0, Number(hourInput?.value || 0));
           const othersTotal = items
             .filter(entry => entry.id !== item.id)
             .reduce((sum, entry) => sum + Math.max(0, Number(entry.hours || 0)), 0);
+          item.label = labelInput?.value.trim() || "未命名";
           item.hours = Math.min(requested, Math.max(0, subjectTotal - othersTotal));
+          editingBreakdownId = null;
           saveState();
           renderHourStats();
+        });
+      });
+      document.querySelectorAll("[data-breakdown-label], [data-breakdown-hours]").forEach(input => {
+        input.addEventListener("keydown", event => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          input.closest(".breakdown-item")?.querySelector("[data-breakdown-confirm]")?.click();
         });
       });
       document.querySelectorAll("[data-breakdown-delete]").forEach(button => {
@@ -5302,6 +5500,7 @@
           const index = items.findIndex(entry => entry.id === button.dataset.breakdownDelete);
           if (index < 0) return;
           items.splice(index, 1);
+          if (editingBreakdownId === button.dataset.breakdownDelete) editingBreakdownId = null;
           saveState();
           renderHourStats();
         });
@@ -6163,6 +6362,13 @@
       const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       localStorage.setItem(themeStorageKey, nextTheme);
       applyTheme(nextTheme);
+    });
+
+    document.addEventListener("click", event => {
+      if (!activePiePopupSubject) return;
+      if (event.target.closest(".pie-wrap")) return;
+      activePiePopupSubject = null;
+      renderHourStats();
     });
 
     window.addEventListener("scroll", updateMobileMiniVisibility, { passive: true });
