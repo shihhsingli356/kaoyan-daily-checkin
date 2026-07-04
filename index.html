@@ -3288,6 +3288,26 @@
       ["final", "考前确认"]
     ];
 
+    const issueCategories = [
+      { key: "cs_data", subject: "cs", group: "408", label: "数据结构" },
+      { key: "cs_co", subject: "cs", group: "408", label: "计算机组成原理" },
+      { key: "cs_os", subject: "cs", group: "408", label: "操作系统" },
+      { key: "cs_network", subject: "cs", group: "408", label: "计算机网络" },
+      { key: "math_advanced", subject: "math", group: "数学", label: "高等数学" },
+      { key: "math_linear", subject: "math", group: "数学", label: "线性代数" },
+      { key: "math_probability", subject: "math", group: "数学", label: "概率统计" },
+      { key: "english", subject: "english", group: "", label: "英语" },
+      { key: "politics", subject: "politics", group: "", label: "政治" }
+    ];
+    const issueCategoryOrder = issueCategories.map(category => category.key);
+    const issueCategoryMap = Object.fromEntries(issueCategories.map(category => [category.key, category]));
+    const legacyIssueCategory = {
+      cs: "cs_data",
+      math: "math_advanced",
+      english: "english",
+      politics: "politics"
+    };
+
     const phases = [
       {
         name: "一轮打基础",
@@ -3591,7 +3611,7 @@
     let phaseDetailOpen = false;
     let allTablePhaseName = selectedPhaseName;
     let selectedHourRange = "week";
-    let selectedIssueSubject = "cs";
+    let selectedIssueSubject = "cs_data";
     let cloudConfig = loadCloudConfig();
     let cloudAutoSync = localStorage.getItem(cloudAutoSyncKey) !== "off";
     let cloudClient = null;
@@ -4110,17 +4130,39 @@
       if (typeof day.review !== "string") day.review = "";
       if (typeof day.fix !== "string") day.fix = "";
       if (typeof day.completedAt !== "string") day.completedAt = "";
-      if (day.review.trim() && !subjectOrder.some(subject => String(day.issues[subject] || "").trim())) {
-        day.issues.cs = day.review;
+      if (day.review.trim() && !issueCategoryOrder.some(categoryKey => String(day.issues[categoryKey] || "").trim())) {
+        day.issues.cs_data = day.review;
       }
       subjectOrder.forEach(subject => {
-        if (typeof day.issues[subject] !== "string") day.issues[subject] = "";
-        if (!day.issueChecks[subject]) day.issueChecks[subject] = {};
-        issueChecks.forEach(([key]) => {
-          if (typeof day.issueChecks[subject][key] !== "boolean") day.issueChecks[subject][key] = false;
+        const legacyText = typeof day.issues[subject] === "string" ? day.issues[subject].trim() : "";
+        const targetCategory = legacyIssueCategory[subject];
+        const categoryHasText = issueCategories
+          .filter(category => category.subject === subject)
+          .some(category => String(day.issues[category.key] || "").trim().length > 0);
+        if (legacyText && targetCategory && !categoryHasText) day.issues[targetCategory] = day.issues[subject];
+      });
+      issueCategoryOrder.forEach(categoryKey => {
+        if (typeof day.issues[categoryKey] !== "string") day.issues[categoryKey] = "";
+        if (!day.issueChecks[categoryKey]) day.issueChecks[categoryKey] = {};
+        issueChecks.forEach(([checkKey]) => {
+          if (typeof day.issueChecks[categoryKey][checkKey] !== "boolean") day.issueChecks[categoryKey][checkKey] = false;
         });
       });
       return day;
+    }
+
+    function issueCategoriesForSubject(subject) {
+      return issueCategories.filter(category => category.subject === subject);
+    }
+
+    function issueCategoriesForSubjects(activeSubjects) {
+      return activeSubjects.flatMap(subject => issueCategoriesForSubject(subject));
+    }
+
+    function issueCategoryName(categoryKey) {
+      const category = issueCategoryMap[categoryKey];
+      if (!category) return subjects[categoryKey] || categoryKey;
+      return category.group ? `${category.group} · ${category.label}` : category.label;
     }
 
     function activeSubjectsFor(key) {
@@ -4134,17 +4176,17 @@
 
     function hasIssue(key) {
       const day = ensureDay(key);
-      return subjectOrder.some(subject => day.issues[subject].trim().length > 0);
+      return issueCategoryOrder.some(categoryKey => day.issues[categoryKey].trim().length > 0);
     }
 
-    function hasSubjectIssue(key, subject) {
-      return ensureDay(key).issues[subject].trim().length > 0;
+    function hasSubjectIssue(key, categoryKey) {
+      return ensureDay(key).issues[categoryKey].trim().length > 0;
     }
 
     function allIssuesMastered(key) {
       const day = ensureDay(key);
-      const issueSubjects = subjectOrder.filter(subject => day.issues[subject].trim().length > 0);
-      return issueSubjects.length > 0 && issueSubjects.every(subject => day.issueChecks[subject].mastered);
+      const issueSubjects = issueCategoryOrder.filter(categoryKey => day.issues[categoryKey].trim().length > 0);
+      return issueSubjects.length > 0 && issueSubjects.every(categoryKey => day.issueChecks[categoryKey].mastered);
     }
 
     function dayStatus(key) {
@@ -4705,6 +4747,7 @@
       const donePercent = active.length ? Math.round(doneCount / active.length * 100) : 0;
       const targetHours = active.reduce((sum, subject) => sum + (phase.targets[subject] || 0), 0);
       const actualHours = active.reduce((sum, subject) => sum + Number(day.hours[subject] || 0), 0);
+      const activeIssueCategories = issueCategoriesForSubjects(active);
       const nextSubject = active.find(subject => !day.tasks[subject]);
       const readOnly = !canEditState();
       const disabledAttr = readOnly ? "disabled" : "";
@@ -4768,10 +4811,10 @@
           <div class="review-block issue-entry-block">
             <label>今日错题 / 问题</label>
             <div class="subject-issue-grid">
-              ${active.map(subject => `
-                <div class="subject-issue subject-${subject}">
-                  <label for="issue-${subject}-${key}">${subjects[subject]}</label>
-                  <textarea id="issue-${subject}-${key}" data-issue="${key}" data-subject="${subject}" placeholder="记录${subjects[subject]}今天做错的题、没想明白的问题、要回看的知识点。" ${readonlyAttr}>${escapeHtml(day.issues[subject])}</textarea>
+              ${activeIssueCategories.map(category => `
+                <div class="subject-issue subject-${category.subject}">
+                  <label for="issue-${category.key}-${key}">${issueCategoryName(category.key)}</label>
+                  <textarea id="issue-${category.key}-${key}" data-issue="${key}" data-category="${category.key}" placeholder="记录${issueCategoryName(category.key)}今天做错的题、没想明白的问题、要回看的知识点。" ${readonlyAttr}>${escapeHtml(day.issues[category.key])}</textarea>
                 </div>
               `).join("")}
             </div>
@@ -4849,7 +4892,7 @@
             return;
           }
           const day = ensureDay(event.target.dataset.issue);
-          day.issues[event.target.dataset.subject] = event.target.value;
+          day.issues[event.target.dataset.category] = event.target.value;
           saveState();
           renderCalendar();
           renderIssuesPanel();
@@ -4859,6 +4902,7 @@
     }
 
     function renderIssuesPanel() {
+      if (!issueCategoryMap[selectedIssueSubject]) selectedIssueSubject = issueCategoryOrder[0];
       const issues = [];
       for (let current = new Date(startDate); current <= endDate; current = addDays(current, 1)) {
         const key = dateKey(current);
@@ -4868,12 +4912,12 @@
           issues.push({ key, weekday: weekdays[current.getDay()], review, checks: day.issueChecks[selectedIssueSubject] });
         }
       }
-      const counts = Object.fromEntries(subjectOrder.map(subject => {
+      const counts = Object.fromEntries(issueCategoryOrder.map(categoryKey => {
         let count = 0;
         for (let current = new Date(startDate); current <= endDate; current = addDays(current, 1)) {
-          if (hasSubjectIssue(dateKey(current), subject)) count += 1;
+          if (hasSubjectIssue(dateKey(current), categoryKey)) count += 1;
         }
-        return [subject, count];
+        return [categoryKey, count];
       }));
 
       document.getElementById("issuesPanel").innerHTML = `
@@ -4882,9 +4926,9 @@
           <p>按科目归档错题和问题。点击月历中的蓝点日期，也能回到当天查看。</p>
         </div>
         <div class="issue-tabs">
-          ${subjectOrder.map(subject => `
-            <button class="subject-tab ${subject === selectedIssueSubject ? "active" : ""}" data-issue-subject="${subject}">
-              ${subjects[subject]} ${counts[subject]}
+          ${issueCategoryOrder.map(categoryKey => `
+            <button class="subject-tab ${categoryKey === selectedIssueSubject ? "active" : ""}" data-issue-subject="${categoryKey}">
+              ${issueCategoryName(categoryKey)} ${counts[categoryKey]}
             </button>
           `).join("")}
         </div>
@@ -4903,7 +4947,7 @@
                 `).join("")}
               </div>
             </div>
-          `).join("") : `<div class="empty">${subjects[selectedIssueSubject]}暂时还没有记录错题或问题。</div>`}
+          `).join("") : `<div class="empty">${issueCategoryName(selectedIssueSubject)}暂时还没有记录错题或问题。</div>`}
         </div>
       `;
       document.querySelectorAll("[data-issue-subject]").forEach(button => {
