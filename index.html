@@ -3363,17 +3363,17 @@
     .all-card > summary::after {
       content: "+";
       position: absolute;
-      right: 20px;
+      right: 18px;
       top: 50%;
-      width: 38px;
-      height: 38px;
+      width: 32px;
+      height: 32px;
       display: grid;
       place-items: center;
       border: 1px solid rgba(8, 19, 22, .14);
       border-radius: 999px;
       background: rgba(255, 253, 248, .92);
       color: var(--accent);
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 900;
       line-height: 1;
       transform: translateY(-50%);
@@ -3407,9 +3407,9 @@
     html[data-theme="dark"] .syllabus-root > summary::after,
     html[data-theme="dark"] .all-card > summary::after {
       border-color: rgba(102, 208, 191, .34);
-      background: rgba(19, 31, 28, .96);
-      color: var(--accent-strong);
-      box-shadow: none;
+      background: rgba(19, 31, 28, .96) !important;
+      color: var(--accent-strong) !important;
+      box-shadow: none !important;
     }
 
     @media (max-width: 640px) {
@@ -3417,18 +3417,18 @@
       .collapsible-panel > summary,
       .syllabus-root > summary,
       .all-card > summary {
-        min-height: 78px;
-        padding: 20px 72px 20px 22px;
+        min-height: 72px;
+        padding: 18px 62px 18px 22px;
       }
 
       .cloud-sync > summary::after,
       .collapsible-panel > summary::after,
       .syllabus-root > summary::after,
       .all-card > summary::after {
-        right: 22px;
-        width: 42px;
-        height: 42px;
-        font-size: 24px;
+        right: 20px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
       }
     }
   </style>
