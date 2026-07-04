@@ -18,6 +18,8 @@
 
 不要在网页里填写 `service_role` key。
 
+当前版本支持公开只读预览：网页可以默认读取 Supabase 中的最新公开快照；未登录用户只能查看，登录后才能修改并同步。需要在 `index.html` 里的 `bundledCloudConfig` 填入项目的 `Project URL` 和 `publishable key`，并重新执行一次 `supabase-checkin-schema.sql` 来创建公开快照表。
+
 ## 部署
 
 这是纯静态项目，可以部署到 Vercel、Cloudflare Pages、GitHub Pages 或任意静态服务器。

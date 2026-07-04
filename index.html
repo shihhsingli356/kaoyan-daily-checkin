@@ -3069,6 +3069,34 @@
       border-color: rgba(102, 208, 191, .5);
     }
 
+    .readonly-note {
+      margin: 0 18px 16px;
+      padding: 11px 13px;
+      border-radius: 8px;
+      border: 1px solid rgba(189, 143, 46, .28);
+      background: rgba(189, 143, 46, .1);
+      color: var(--ink-strong);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .daily-card.is-readonly input,
+    .daily-card.is-readonly textarea,
+    .issues-list input:disabled {
+      cursor: not-allowed;
+    }
+
+    .daily-card.is-readonly .task,
+    .daily-card.is-readonly .review-block {
+      opacity: .82;
+    }
+
+    html[data-theme="dark"] .readonly-note {
+      border-color: rgba(241, 207, 126, .35);
+      background: rgba(241, 207, 126, .11);
+      color: var(--ink-strong);
+    }
+
     @media (max-width: 980px) {
       .cloud-grid,
       .cloud-auth {
@@ -3225,6 +3253,12 @@
     const cloudConfigKey = "kaoyan_daily_checkin_supabase_config_v1";
     const cloudAutoSyncKey = "kaoyan_daily_checkin_cloud_auto_v1";
     const cloudTableName = "checkin_states";
+    const publicSnapshotTableName = "public_checkin_snapshots";
+    const publicSnapshotId = "latest";
+    const bundledCloudConfig = {
+      url: "https://kiglmfqpnojaoxjmfsjd.supabase.co",
+      anonKey: "sb_publishable_7OKkqbzItewaalwy1lwidQ_SqGk4vog"
+    };
     const oldStorageKeys = ["kaoyan_daily_checkin_2026_v3", "kaoyan_daily_checkin_2026_v2", "kaoyan_daily_checkin_2026"];
 
     const subjects = {
@@ -3621,17 +3655,34 @@
       try {
         const raw = localStorage.getItem(cloudConfigKey);
         const parsed = raw ? JSON.parse(raw) : {};
+        const fallback = {
+          url: bundledCloudConfig.url || "",
+          anonKey: bundledCloudConfig.anonKey || ""
+        };
         return {
-          url: typeof parsed.url === "string" ? parsed.url : "",
-          anonKey: typeof parsed.anonKey === "string" ? parsed.anonKey : ""
+          url: typeof parsed.url === "string" && parsed.url ? parsed.url : fallback.url,
+          anonKey: typeof parsed.anonKey === "string" && parsed.anonKey ? parsed.anonKey : fallback.anonKey
         };
       } catch {
-        return { url: "", anonKey: "" };
+        return {
+          url: bundledCloudConfig.url || "",
+          anonKey: bundledCloudConfig.anonKey || ""
+        };
       }
     }
 
     function hasCloudConfig() {
       return Boolean(cloudConfig.url && cloudConfig.anonKey);
+    }
+
+    function canEditState() {
+      return !hasCloudConfig() || Boolean(cloudSession && cloudSession.user);
+    }
+
+    function guardEdit() {
+      if (canEditState()) return true;
+      setCloudMessage("当前是只读预览，登录后才能修改并同步。", "warn");
+      return false;
     }
 
     function cloudSdkReady() {
@@ -3684,7 +3735,7 @@
         return { text: "Supabase SDK 没有加载成功，请检查网络后刷新。", tone: "error" };
       }
       if (!cloudSession || !cloudSession.user) {
-        return { text: "已保存 Supabase 配置，登录后开始同步。", tone: "warn" };
+        return { text: "正在查看最新云端存档，登录后可修改。", tone: "warn" };
       }
       if (cloudSyncing) {
         return { text: "正在同步到云端。", tone: "ok" };
@@ -3697,7 +3748,7 @@
 
     function cloudSummaryText() {
       if (!hasCloudConfig()) return "未配置 Supabase，本地保存正常。";
-      if (!cloudSession || !cloudSession.user) return "已配置，登录后同步。";
+      if (!cloudSession || !cloudSession.user) return "只读查看最新云端存档。";
       if (cloudSyncing) return "正在同步。";
       return cloudLastSyncedAt ? `上次同步 ${formatCloudTime(cloudLastSyncedAt)}` : "已登录，等待首次同步。";
     }
@@ -3861,9 +3912,37 @@
       const authChange = cloudClient.auth.onAuthStateChange((_event, session) => {
         cloudSession = session;
         renderCloudPanel();
+        if (!cloudSession || !cloudSession.user) loadPublicSnapshot();
       });
       cloudAuthSubscription = authChange.data && authChange.data.subscription;
+      if (!cloudSession || !cloudSession.user) {
+        await loadPublicSnapshot();
+      }
       if (!silent) renderCloudPanel();
+    }
+
+    async function loadPublicSnapshot() {
+      if (!cloudClient) return;
+      const { data, error } = await cloudClient
+        .from(publicSnapshotTableName)
+        .select("state_json, updated_at")
+        .eq("id", publicSnapshotId)
+        .maybeSingle();
+      if (error) {
+        setCloudMessage(`读取公开存档失败：${error.message}`, "error");
+        return;
+      }
+      if (!data) {
+        setCloudMessage("云端还没有公开存档，登录同步后会显示。", "warn");
+        return;
+      }
+      cloudSyncPaused = true;
+      state = data.state_json && typeof data.state_json === "object" ? data.state_json : {};
+      localStorage.setItem(storageKey, JSON.stringify(state));
+      cloudSyncPaused = false;
+      cloudLastSyncedAt = data.updated_at || "";
+      renderAll();
+      setCloudMessage("已载入最新云端存档，当前为只读预览。", "ok");
     }
 
     async function signUpCloud() {
@@ -3963,6 +4042,19 @@
       cloudSyncing = false;
       if (error) {
         setCloudMessage(`同步失败：${error.message}`, "error");
+        return;
+      }
+      const { error: publicError } = await cloudClient
+        .from(publicSnapshotTableName)
+        .upsert({
+          id: publicSnapshotId,
+          user_id: cloudSession.user.id,
+          state_json: state,
+          updated_at: now
+        }, { onConflict: "id" });
+      if (publicError) {
+        cloudLastSyncedAt = now;
+        setCloudMessage(`私有进度已同步，公开预览更新失败：${publicError.message}`, "warn");
         return;
       }
       cloudLastSyncedAt = now;
@@ -4605,6 +4697,9 @@
       const targetHours = active.reduce((sum, subject) => sum + (phase.targets[subject] || 0), 0);
       const actualHours = active.reduce((sum, subject) => sum + Number(day.hours[subject] || 0), 0);
       const nextSubject = active.find(subject => !day.tasks[subject]);
+      const readOnly = !canEditState();
+      const disabledAttr = readOnly ? "disabled" : "";
+      const readonlyAttr = readOnly ? "readonly" : "";
       const nextAction = nextSubject
         ? `下一步：完成 ${subjects[nextSubject]} 打卡`
         : "今日任务已清零，记得补上错题和明日调整";
@@ -4612,7 +4707,7 @@
       const yesterdayFix = selectedDate > startDate ? ensureDay(yesterdayKey).fix.trim() : "";
 
       const dailyCard = document.getElementById("dailyCard");
-      dailyCard.className = `daily-card is-${status}`;
+      dailyCard.className = `daily-card is-${status} ${readOnly ? "is-readonly" : ""}`;
       dailyCard.innerHTML = `
         <div class="daily-head">
           <div>
@@ -4641,6 +4736,7 @@
         <div class="reminder">
           <strong>昨日提醒：</strong>${yesterdayFix ? escapeHtml(yesterdayFix) : "前一天没有填写明日补救。"}
         </div>
+        ${readOnly ? '<div class="readonly-note">只读预览：登录后可以修改并同步。</div>' : ""}
         <div class="task-grid">
           ${active.map(subject => `
             <article class="task subject-${subject} ${day.tasks[subject] ? "is-done" : "is-open"}">
@@ -4649,12 +4745,12 @@
                 <span class="task-state">${day.tasks[subject] ? "已完成" : "待完成"}</span>
               </div>
               <label class="check-label">
-                <input type="checkbox" data-key="${key}" data-subject="${subject}" ${day.tasks[subject] ? "checked" : ""}>
+                <input type="checkbox" data-key="${key}" data-subject="${subject}" ${day.tasks[subject] ? "checked" : ""} ${disabledAttr}>
                 <span class="task-copy">${taskTextForDate(key, subject)}</span>
               </label>
               <div class="hours-row">
                 <span>学习时长，目标 ${phase.targets[subject]}h</span>
-                <input type="number" min="0" step="0.25" data-hour="${key}" data-subject="${subject}" value="${day.hours[subject] ?? ""}" placeholder="0">
+                <input type="number" min="0" step="0.25" data-hour="${key}" data-subject="${subject}" value="${day.hours[subject] ?? ""}" placeholder="0" ${disabledAttr}>
               </div>
             </article>
           `).join("")}
@@ -4666,14 +4762,14 @@
               ${active.map(subject => `
                 <div class="subject-issue subject-${subject}">
                   <label for="issue-${subject}-${key}">${subjects[subject]}</label>
-                  <textarea id="issue-${subject}-${key}" data-issue="${key}" data-subject="${subject}" placeholder="记录${subjects[subject]}今天做错的题、没想明白的问题、要回看的知识点。">${escapeHtml(day.issues[subject])}</textarea>
+                  <textarea id="issue-${subject}-${key}" data-issue="${key}" data-subject="${subject}" placeholder="记录${subjects[subject]}今天做错的题、没想明白的问题、要回看的知识点。" ${readonlyAttr}>${escapeHtml(day.issues[subject])}</textarea>
                 </div>
               `).join("")}
             </div>
           </div>
           <div class="review-block fix-block">
             <label for="fix-${key}">明日补救 / 调整</label>
-            <textarea id="fix-${key}" data-note="${key}" data-field="fix" placeholder="明天怎么补？要优先处理什么？">${escapeHtml(day.fix)}</textarea>
+            <textarea id="fix-${key}" data-note="${key}" data-field="fix" placeholder="明天怎么补？要优先处理什么？" ${readonlyAttr}>${escapeHtml(day.fix)}</textarea>
           </div>
         </div>
       `;
@@ -4692,6 +4788,10 @@
     function attachDailyEvents() {
       document.querySelectorAll("#dailyCard input[type='checkbox']").forEach(input => {
         input.addEventListener("change", event => {
+          if (!guardEdit()) {
+            renderDailyCard();
+            return;
+          }
           const key = event.target.dataset.key;
           const subject = event.target.dataset.subject;
           const day = ensureDay(key);
@@ -4705,6 +4805,10 @@
 
       document.querySelectorAll("#dailyCard input[type='number']").forEach(input => {
         input.addEventListener("input", event => {
+          if (!guardEdit()) {
+            renderDailyCard();
+            return;
+          }
           const day = ensureDay(event.target.dataset.hour);
           const subject = event.target.dataset.subject;
           day.hours[subject] = event.target.value === "" ? "" : Math.max(0, Number(event.target.value));
@@ -4717,6 +4821,10 @@
 
       document.querySelectorAll("#dailyCard textarea[data-note]").forEach(textarea => {
         textarea.addEventListener("input", event => {
+          if (!guardEdit()) {
+            renderDailyCard();
+            return;
+          }
           const day = ensureDay(event.target.dataset.note);
           day[event.target.dataset.field] = event.target.value;
           saveState();
@@ -4727,6 +4835,10 @@
 
       document.querySelectorAll("#dailyCard textarea[data-issue]").forEach(textarea => {
         textarea.addEventListener("input", event => {
+          if (!guardEdit()) {
+            renderDailyCard();
+            return;
+          }
           const day = ensureDay(event.target.dataset.issue);
           day.issues[event.target.dataset.subject] = event.target.value;
           saveState();
@@ -4776,7 +4888,7 @@
               <div class="confirm-grid">
                 ${issueChecks.map(([checkKey, label]) => `
                   <label>
-                    <input type="checkbox" data-issue-check-date="${item.key}" data-issue-check-subject="${selectedIssueSubject}" data-issue-check="${checkKey}" ${item.checks[checkKey] ? "checked" : ""}>
+                    <input type="checkbox" data-issue-check-date="${item.key}" data-issue-check-subject="${selectedIssueSubject}" data-issue-check="${checkKey}" ${item.checks[checkKey] ? "checked" : ""} ${canEditState() ? "" : "disabled"}>
                     <span>${label}</span>
                   </label>
                 `).join("")}
@@ -4802,6 +4914,10 @@
       });
       document.querySelectorAll("[data-issue-check]").forEach(input => {
         input.addEventListener("change", event => {
+          if (!guardEdit()) {
+            renderIssuesPanel();
+            return;
+          }
           const day = ensureDay(event.target.dataset.issueCheckDate);
           const subject = event.target.dataset.issueCheckSubject;
           const check = event.target.dataset.issueCheck;
@@ -4925,6 +5041,7 @@
     });
 
     document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!guardEdit()) return;
       if (!confirm("确定清空所有勾选、时长和备注吗？")) return;
       state = {};
       saveState();
