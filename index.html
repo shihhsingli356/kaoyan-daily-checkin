@@ -2784,6 +2784,140 @@
       margin-top: 12px;
     }
 
+    .version-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 22px auto 0;
+      padding: 14px 0 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .version-footer button {
+      min-height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 118, 110, .2);
+      background: rgba(255, 253, 248, .88);
+      color: var(--accent-strong);
+      padding: 0 12px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .version-footer button:hover {
+      transform: translateY(-1px);
+      background: rgba(15, 118, 110, .09);
+      box-shadow: 0 10px 22px rgba(15, 118, 110, .1);
+    }
+
+    .version-modal[hidden] {
+      display: none;
+    }
+
+    .version-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(8, 19, 22, .42);
+      backdrop-filter: blur(10px);
+      animation: version-backdrop-in .18s ease both;
+    }
+
+    .version-modal-card {
+      width: min(920px, calc(100vw - 36px));
+      max-height: min(760px, calc(100vh - 48px));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 253, 248, .98);
+      box-shadow: 0 28px 80px rgba(8, 19, 22, .26);
+      overflow: hidden;
+      animation: version-card-in .22s ease both;
+    }
+
+    .version-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+      background: rgba(247, 250, 248, .9);
+    }
+
+    .version-modal-head strong {
+      display: block;
+      color: var(--ink-strong);
+      font-size: 16px;
+      margin-bottom: 3px;
+    }
+
+    .version-modal-head span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .version-modal-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .version-modal-actions a,
+    .version-modal-actions button {
+      min-height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, .9);
+      color: var(--accent-strong);
+      padding: 0 12px;
+      text-decoration: none;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .version-log-view {
+      margin: 0;
+      padding: 16px 18px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: var(--ink);
+      font: 13px/1.72 "Microsoft YaHei", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(15, 118, 110, .035), transparent 120px),
+        rgba(255, 253, 248, .98);
+    }
+
+    @keyframes version-backdrop-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes version-card-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     @media (max-width: 980px) {
       .topbar,
       .daily-head,
@@ -2834,6 +2968,24 @@
       .calendar-grid {
         gap: 4px;
         padding: 10px;
+      }
+
+      .version-modal {
+        padding: 12px;
+      }
+
+      .version-modal-card {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+      }
+
+      .version-modal-head {
+        display: grid;
+        gap: 10px;
+      }
+
+      .version-modal-actions {
+        justify-content: space-between;
       }
       .weekday, .day {
         font-size: 12px;
@@ -3955,6 +4107,48 @@
     html[data-theme="dark"] .record-calendar-day.active {
       color: #071714;
       background: var(--accent-strong);
+    }
+
+    html[data-theme="dark"] .version-footer {
+      color: var(--muted);
+    }
+
+    html[data-theme="dark"] .version-footer button,
+    html[data-theme="dark"] .version-modal-actions a,
+    html[data-theme="dark"] .version-modal-actions button {
+      border-color: rgba(255, 250, 240, .16);
+      background: rgba(27, 40, 37, .96);
+      color: var(--accent-strong);
+    }
+
+    html[data-theme="dark"] .version-footer button:hover,
+    html[data-theme="dark"] .version-modal-actions a:hover,
+    html[data-theme="dark"] .version-modal-actions button:hover {
+      border-color: rgba(102, 208, 191, .45);
+      background: rgba(102, 208, 191, .14);
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .version-modal {
+      background: rgba(0, 0, 0, .52);
+    }
+
+    html[data-theme="dark"] .version-modal-card {
+      border-color: rgba(255, 250, 240, .13);
+      background: rgba(27, 40, 37, .98);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .42);
+    }
+
+    html[data-theme="dark"] .version-modal-head {
+      border-color: rgba(255, 250, 240, .12);
+      background: rgba(38, 51, 48, .9);
+    }
+
+    html[data-theme="dark"] .version-log-view {
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(102, 208, 191, .07), transparent 120px),
+        rgba(27, 40, 37, .98);
     }
 
     html[data-theme="dark"] input[type="number"]:focus,
@@ -5244,7 +5438,28 @@
       <button class="text-btn" id="exportBtn">导出进度</button>
       <button class="text-btn" id="resetBtn">清空勾选、时长和备注</button>
     </div>
+
+    <footer class="version-footer" aria-label="版本信息">
+      <span>当前版本：<b id="appVersionText">1.12.0</b></span>
+      <button type="button" id="versionLogBtn">查看历史版本</button>
+    </footer>
   </main>
+
+  <div class="version-modal" id="versionModal" hidden>
+    <section class="version-modal-card" role="dialog" aria-modal="true" aria-labelledby="versionModalTitle">
+      <div class="version-modal-head">
+        <div>
+          <strong id="versionModalTitle">历史版本日志</strong>
+          <span>当前部署版：<b id="versionModalCurrent">1.12.0</b></span>
+        </div>
+        <div class="version-modal-actions">
+          <a href="version-log.txt" target="_blank" rel="noopener">新页打开</a>
+          <button type="button" id="versionModalClose">关闭</button>
+        </div>
+      </div>
+      <pre class="version-log-view" id="versionLogView">正在加载版本日志...</pre>
+    </section>
+  </div>
 
   <script>
     const startDate = new Date("2026-07-04T00:00:00+08:00");
@@ -5258,6 +5473,7 @@
     const cloudTableName = "checkin_states";
     const publicSnapshotTableName = "public_checkin_snapshots";
     const publicSnapshotId = "latest";
+    const appVersion = "1.12.0";
     const hourInputStep = 0.1;
     const timerUnitMs = 6 * 60 * 1000;
     const timerRoundUpMs = 3 * 60 * 1000;
@@ -8643,6 +8859,35 @@
       renderAll();
     });
 
+    async function openVersionLog() {
+      const modal = document.getElementById("versionModal");
+      const view = document.getElementById("versionLogView");
+      if (!modal || !view) return;
+      modal.hidden = false;
+      view.textContent = "正在加载版本日志...";
+      try {
+        const response = await fetch("version-log.txt", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        view.textContent = await response.text();
+      } catch (error) {
+        view.textContent = "版本日志加载失败。可以点击右上角“新页打开”直接查看 version-log.txt。";
+      }
+      document.getElementById("versionModalClose")?.focus();
+    }
+
+    function closeVersionLog() {
+      const modal = document.getElementById("versionModal");
+      if (modal) modal.hidden = true;
+    }
+
+    document.getElementById("appVersionText").textContent = appVersion;
+    document.getElementById("versionModalCurrent").textContent = appVersion;
+    document.getElementById("versionLogBtn").addEventListener("click", openVersionLog);
+    document.getElementById("versionModalClose").addEventListener("click", closeVersionLog);
+    document.getElementById("versionModal").addEventListener("click", event => {
+      if (event.target.id === "versionModal") closeVersionLog();
+    });
+
     document.getElementById("themeToggle").addEventListener("click", () => {
       const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       localStorage.setItem(themeStorageKey, nextTheme);
@@ -8654,6 +8899,10 @@
       if (event.target.closest(".pie-wrap")) return;
       activePiePopupSubject = null;
       renderHourStats();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeVersionLog();
     });
 
     window.addEventListener("scroll", updateMobileMiniVisibility, { passive: true });
