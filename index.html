@@ -677,6 +677,7 @@
     }
 
     .record-library-toggle,
+    .record-date-toggle,
     .study-distribution-toggle {
       min-height: 36px;
       border-radius: 999px;
@@ -684,15 +685,20 @@
       font-weight: 800;
       color: var(--accent-strong);
       background: rgba(15, 118, 110, .08);
+      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .18);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
     }
 
+    .record-date-toggle,
     .study-distribution-toggle {
       color: var(--ink);
       background: rgba(255, 253, 248, .94);
-      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .18);
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
     }
 
+    .record-library-toggle:hover,
+    .record-library-toggle.active,
+    .record-date-toggle:hover,
+    .record-date-toggle.active,
     .study-distribution-toggle:hover,
     .study-distribution-toggle.active {
       color: var(--accent-strong);
@@ -708,15 +714,6 @@
       align-items: center;
     }
 
-    .record-date-toggle {
-      min-height: 36px;
-      border-radius: 999px;
-      padding: 0 13px;
-      font-weight: 800;
-      color: var(--ink);
-      background: rgba(255, 253, 248, .9);
-    }
-
     .record-calendar-popover {
       position: absolute;
       right: 0;
@@ -728,6 +725,7 @@
       background: rgba(255, 253, 248, .98);
       box-shadow: 0 20px 46px rgba(8, 19, 22, .18);
       padding: 12px;
+      animation: stats-panel-enter .22s ease both;
     }
 
     .record-calendar-head {
@@ -818,6 +816,7 @@
         linear-gradient(135deg, rgba(15, 118, 110, .08), rgba(255, 253, 248, .92) 38%, rgba(245, 158, 11, .07));
       padding: 14px;
       overflow: hidden;
+      animation: stats-panel-enter .24s ease both;
     }
 
     .distribution-head {
@@ -1079,6 +1078,64 @@
       border-radius: 8px;
       background: rgba(255, 253, 248, .82);
       padding: 12px;
+      animation: stats-panel-enter .24s ease both;
+    }
+
+    @keyframes stats-panel-enter {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.992);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .study-distribution-panel.closing,
+    .study-record-library.closing,
+    .record-calendar-popover.closing {
+      pointer-events: none;
+      animation: stats-panel-exit .2s ease both;
+    }
+
+    @keyframes stats-panel-exit {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-8px) scale(.992);
+      }
+    }
+
+    .study-record-focus-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(15, 118, 110, .28);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(15, 118, 110, .14), rgba(245, 158, 11, .1), rgba(255, 253, 248, .72));
+      color: var(--accent-strong);
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 900;
+      animation: record-focus-glow .9s ease both;
+    }
+
+    .study-record-focus-banner button {
+      min-height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 253, 248, .86);
+      color: var(--accent-strong);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 0 10px;
     }
 
     .study-record-head {
@@ -1111,6 +1168,38 @@
       border-radius: 8px;
       background: rgba(255, 255, 255, .72);
       padding: 8px;
+    }
+
+    .study-record-row.focused {
+      border-color: rgba(15, 118, 110, .58);
+      background:
+        linear-gradient(90deg, rgba(15, 118, 110, .13), rgba(255, 253, 248, .94));
+      box-shadow: 0 12px 28px rgba(15, 118, 110, .14), inset 0 0 0 1px rgba(15, 118, 110, .13);
+      animation: record-row-pop .8s ease both;
+    }
+
+    @keyframes record-focus-glow {
+      0% {
+        transform: translateY(-4px);
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(15, 118, 110, 0);
+      }
+      55% {
+        transform: translateY(0);
+        opacity: 1;
+        box-shadow: 0 16px 34px rgba(15, 118, 110, .18);
+      }
+      100% {
+        transform: none;
+        opacity: 1;
+        box-shadow: 0 8px 20px rgba(15, 118, 110, .08);
+      }
+    }
+
+    @keyframes record-row-pop {
+      0% { transform: scale(.985); }
+      55% { transform: scale(1.012); }
+      100% { transform: scale(1); }
     }
 
     .study-record-row select,
@@ -1522,14 +1611,16 @@
     }
 
     .breakdown-chip.locked {
-      cursor: default;
-      color: var(--muted);
-      background: rgba(8, 19, 22, .06);
+      cursor: pointer;
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .08);
+      border-color: transparent;
     }
 
     .breakdown-chip.locked:hover {
-      border-color: transparent;
-      transform: none;
+      border-color: rgba(15, 118, 110, .25);
+      background: rgba(15, 118, 110, .12);
+      transform: translateY(-1px);
     }
 
     .breakdown-chip small {
@@ -1594,6 +1685,8 @@
     html[data-theme="dark"] .breakdown-delete,
     html[data-theme="dark"] .breakdown-confirm,
     html[data-theme="dark"] .pie-popup-card,
+    html[data-theme="dark"] .record-library-toggle,
+    html[data-theme="dark"] .record-date-toggle,
     html[data-theme="dark"] .study-distribution-toggle,
     html[data-theme="dark"] .study-distribution-panel,
     html[data-theme="dark"] .distribution-card,
@@ -1614,6 +1707,10 @@
     }
 
     html[data-theme="dark"] .distribution-subject-toggle.active,
+    html[data-theme="dark"] .record-library-toggle:hover,
+    html[data-theme="dark"] .record-library-toggle.active,
+    html[data-theme="dark"] .record-date-toggle:hover,
+    html[data-theme="dark"] .record-date-toggle.active,
     html[data-theme="dark"] .study-distribution-toggle:hover,
     html[data-theme="dark"] .study-distribution-toggle.active {
       border-color: rgba(102, 208, 191, .45);
@@ -3756,6 +3853,15 @@
       border-color: rgba(102, 208, 191, .55);
     }
 
+    html[data-theme="dark"] .study-record-focus-banner,
+    html[data-theme="dark"] .study-record-row.focused {
+      border-color: rgba(102, 208, 191, .55);
+      background:
+        linear-gradient(90deg, rgba(102, 208, 191, .18), rgba(241, 207, 126, .1), rgba(27, 40, 37, .96));
+      color: var(--ink-strong);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .24), inset 0 0 0 1px rgba(102, 208, 191, .12);
+    }
+
     html[data-theme="dark"] .daily-head,
     html[data-theme="dark"] .calendar-head,
     html[data-theme="dark"] .panel-head,
@@ -3818,6 +3924,27 @@
     html[data-theme="dark"] .record-calendar-head button,
     html[data-theme="dark"] .record-calendar-day {
       color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .record-library-toggle,
+    html[data-theme="dark"] .record-date-toggle,
+    html[data-theme="dark"] .study-distribution-toggle {
+      border-color: rgba(255, 250, 240, .16);
+      background: rgba(27, 40, 37, .96);
+      color: var(--ink-strong);
+      box-shadow: inset 0 0 0 1px rgba(255, 250, 240, .04);
+    }
+
+    html[data-theme="dark"] .record-library-toggle:hover,
+    html[data-theme="dark"] .record-library-toggle.active,
+    html[data-theme="dark"] .record-date-toggle:hover,
+    html[data-theme="dark"] .record-date-toggle.active,
+    html[data-theme="dark"] .study-distribution-toggle:hover,
+    html[data-theme="dark"] .study-distribution-toggle.active {
+      border-color: rgba(102, 208, 191, .55);
+      background: rgba(102, 208, 191, .16);
+      color: var(--accent-strong);
+      box-shadow: inset 0 0 0 1px rgba(102, 208, 191, .18), 0 12px 26px rgba(0, 0, 0, .18);
     }
 
     html[data-theme="dark"] .record-calendar-day.has-record {
@@ -5169,6 +5296,7 @@
       { label: "晚上", start: 18, end: 24 }
     ];
     const distributionWeekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    const statsPanelTransitionMs = 220;
 
     const issueChecks = [
       ["mastered", "确认掌握"],
@@ -5503,11 +5631,15 @@
     let editingBreakdownId = null;
     let activePiePopupSubject = null;
     let studyDistributionOpen = false;
+    let studyDistributionClosing = false;
     let selectedDistributionSubjects = new Set(subjectOrder);
     let studyRecordLibraryOpen = false;
+    let studyRecordLibraryClosing = false;
     let studyRecordCalendarOpen = false;
+    let studyRecordCalendarClosing = false;
     let selectedStudyRecordDate = dateKey(selectedDate);
     let visibleStudyRecordMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    let focusedStudyRecordFilter = null;
     let selectedDailyIssueSubject = "cs";
     let selectedDailyIssueCategoryBySubject = { ...legacyIssueCategory };
     let selectedIssueGroup = "cs";
@@ -6738,6 +6870,17 @@
       return timestampDateKey(Number(record.startMs));
     }
 
+    function studyRecordMatchesFilter(record, filter = focusedStudyRecordFilter) {
+      if (!filter) return false;
+      const label = (record.label || timerDefaultLabel).trim() || timerDefaultLabel;
+      return record.subject === filter.subject && label === filter.label;
+    }
+
+    function studyRecordFocusText() {
+      if (!focusedStudyRecordFilter) return "";
+      return `${subjects[focusedStudyRecordFilter.subject]} · ${focusedStudyRecordFilter.label}`;
+    }
+
     function studyRecordDateSet() {
       return new Set(ensureMeta().studySessions.map(studyRecordDateKey));
     }
@@ -6759,7 +6902,7 @@
         cells.push(`<button class="${classes}" type="button" data-study-record-date="${key}">${date.getDate()}</button>`);
       }
       return `
-        <div class="record-calendar-popover" data-study-record-calendar>
+        <div class="record-calendar-popover ${studyRecordCalendarClosing ? "closing" : ""}" data-study-record-calendar>
           <div class="record-calendar-head">
             <button type="button" data-record-month="-1" title="上个月">‹</button>
             <strong>${visibleStudyRecordMonth.getFullYear()}年${visibleStudyRecordMonth.getMonth() + 1}月</strong>
@@ -6776,18 +6919,27 @@
     }
 
     function renderStudyRecordLibrary() {
-      const sessions = ensureMeta().studySessions.filter(record => studyRecordDateKey(record) === selectedStudyRecordDate);
+      const allSessions = ensureMeta().studySessions.filter(record => studyRecordDateKey(record) === selectedStudyRecordDate);
+      const sessions = focusedStudyRecordFilter
+        ? allSessions.filter(record => studyRecordMatchesFilter(record))
+        : allSessions;
       return `
-        <div class="study-record-library">
+        <div class="study-record-library ${studyRecordLibraryClosing ? "closing" : ""}">
           <div class="study-record-head">
             <strong>学习记录库</strong>
-            <span class="hint">${selectedStudyRecordDate} · 共 ${sessions.length} 条，可修改学科、标签和起止时间</span>
+            <span class="hint">${selectedStudyRecordDate} · ${focusedStudyRecordFilter ? `筛选 ${sessions.length}/${allSessions.length} 条` : `共 ${sessions.length} 条`}，可修改学科、标签和起止时间</span>
           </div>
+          ${focusedStudyRecordFilter ? `
+            <div class="study-record-focus-banner">
+              <span>已定位到 ${escapeHtml(studyRecordFocusText())}，正在只显示匹配记录</span>
+              <button type="button" data-record-focus-clear>显示全部</button>
+            </div>
+          ` : ""}
           <div class="study-record-list">
             ${sessions.length ? sessions.map(record => {
               const labels = studyRecordLabelOptions(record.subject, record.label);
               return `
-                <div class="study-record-row" data-study-record="${record.id}">
+                <div class="study-record-row ${studyRecordMatchesFilter(record) ? "focused" : ""}" data-study-record="${record.id}">
                   <select data-record-subject="${record.id}" aria-label="学科">
                     ${subjectOrder.map(subject => `<option value="${subject}" ${subject === record.subject ? "selected" : ""}>${subjects[subject]}</option>`).join("")}
                   </select>
@@ -6996,7 +7148,7 @@
       const stats = buildStudyDistribution(range);
       const selectedSubjects = distributionSubjectSet();
       return `
-        <section class="study-distribution-panel">
+        <section class="study-distribution-panel ${studyDistributionClosing ? "closing" : ""}">
           <div class="distribution-head">
             <div>
               <strong>学习时间分布</strong>
@@ -7098,16 +7250,16 @@
             `).join("")}
           </div>
           <div class="hour-insight-actions">
-            <button class="study-distribution-toggle ${studyDistributionOpen ? "active" : ""}" type="button" data-study-distribution-toggle>${studyDistributionOpen ? "收起时间分布" : "时间分布"}</button>
+            <button class="study-distribution-toggle ${studyDistributionOpen && !studyDistributionClosing ? "active" : ""}" type="button" data-study-distribution-toggle>${studyDistributionOpen && !studyDistributionClosing ? "收起时间分布" : "时间分布"}</button>
           </div>
           <div class="record-library-actions">
-            <button class="record-date-toggle" type="button" data-study-record-calendar-toggle>${selectedStudyRecordDate}</button>
-            <button class="record-library-toggle" type="button" data-study-record-toggle>${studyRecordLibraryOpen ? "收起记录库" : "学习记录库"}</button>
-            ${studyRecordCalendarOpen ? renderStudyRecordCalendar() : ""}
+            <button class="record-date-toggle ${studyRecordCalendarOpen && !studyRecordCalendarClosing ? "active" : ""}" type="button" data-study-record-calendar-toggle>${selectedStudyRecordDate}</button>
+            <button class="record-library-toggle ${studyRecordLibraryOpen && !studyRecordLibraryClosing ? "active" : ""}" type="button" data-study-record-toggle>${studyRecordLibraryOpen && !studyRecordLibraryClosing ? "收起记录库" : "学习记录库"}</button>
+            ${studyRecordCalendarOpen || studyRecordCalendarClosing ? renderStudyRecordCalendar() : ""}
           </div>
         </div>
-        ${studyDistributionOpen ? renderStudyDistributionPanel(range) : ""}
-        ${studyRecordLibraryOpen ? renderStudyRecordLibrary() : ""}
+        ${studyDistributionOpen || studyDistributionClosing ? renderStudyDistributionPanel(range) : ""}
+        ${studyRecordLibraryOpen || studyRecordLibraryClosing ? renderStudyRecordLibrary() : ""}
         <div class="hour-panel" style="margin-top:12px">
           <article class="hour-box">
             <strong>${hourRanges[selectedHourRange]}数据</strong>
@@ -7168,12 +7320,67 @@
       attachHourBreakdownEvents(range, totals);
     }
 
+    function openStudyDistributionPanel() {
+      studyDistributionOpen = true;
+      studyDistributionClosing = false;
+      renderHourStats();
+    }
+
+    function closeStudyDistributionPanel() {
+      if (!studyDistributionOpen || studyDistributionClosing) return;
+      studyDistributionClosing = true;
+      renderHourStats();
+      window.setTimeout(() => {
+        if (!studyDistributionClosing) return;
+        studyDistributionOpen = false;
+        studyDistributionClosing = false;
+        renderHourStats();
+      }, statsPanelTransitionMs);
+    }
+
+    function openStudyRecordLibrary() {
+      studyRecordLibraryOpen = true;
+      studyRecordLibraryClosing = false;
+      renderHourStats();
+    }
+
+    function closeStudyRecordLibrary() {
+      if (!studyRecordLibraryOpen || studyRecordLibraryClosing) return;
+      studyRecordLibraryClosing = true;
+      renderHourStats();
+      window.setTimeout(() => {
+        if (!studyRecordLibraryClosing) return;
+        studyRecordLibraryOpen = false;
+        studyRecordLibraryClosing = false;
+        renderHourStats();
+      }, statsPanelTransitionMs);
+    }
+
+    function openStudyRecordCalendar() {
+      studyRecordCalendarOpen = true;
+      studyRecordCalendarClosing = false;
+      visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
+      renderHourStats();
+    }
+
+    function closeStudyRecordCalendar() {
+      if (!studyRecordCalendarOpen || studyRecordCalendarClosing) return;
+      studyRecordCalendarClosing = true;
+      renderHourStats();
+      window.setTimeout(() => {
+        if (!studyRecordCalendarClosing) return;
+        studyRecordCalendarOpen = false;
+        studyRecordCalendarClosing = false;
+        renderHourStats();
+      }, statsPanelTransitionMs);
+    }
+
     function attachStudyDistributionEvents() {
       const toggle = document.querySelector("[data-study-distribution-toggle]");
       if (toggle) {
         toggle.addEventListener("click", () => {
-          studyDistributionOpen = !studyDistributionOpen;
-          renderHourStats();
+          if (studyDistributionOpen && !studyDistributionClosing) closeStudyDistributionPanel();
+          else openStudyDistributionPanel();
         });
       }
 
@@ -7197,21 +7404,51 @@
       }
     }
 
+    function scrollFocusedStudyRecordIntoView() {
+      window.setTimeout(() => {
+        const target = document.querySelector(".study-record-row.focused") || document.querySelector(".study-record-focus-banner");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
+    }
+
+    function locateStudyRecordsFromBreakdown(subject, label) {
+      const normalizedLabel = (label || timerDefaultLabel).trim() || timerDefaultLabel;
+      const range = getHourRange(selectedHourRange);
+      const sessions = ensureMeta().studySessions.filter(record => (
+        record.subject === subject &&
+        ((record.label || timerDefaultLabel).trim() || timerDefaultLabel) === normalizedLabel
+      ));
+      const inRange = sessions.find(record => rangeContainsRecordStart(range, record));
+      const target = inRange || sessions[0];
+      if (!target) {
+        alert("没有找到这条标签对应的学习记录。");
+        return;
+      }
+      focusedStudyRecordFilter = { subject, label: normalizedLabel };
+      selectedStudyRecordDate = studyRecordDateKey(target);
+      visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
+      studyRecordLibraryOpen = true;
+      studyRecordLibraryClosing = false;
+      studyRecordCalendarOpen = false;
+      studyRecordCalendarClosing = false;
+      renderHourStats();
+      scrollFocusedStudyRecordIntoView();
+    }
+
     function attachStudyRecordEvents() {
       const toggle = document.querySelector("[data-study-record-toggle]");
       if (toggle) {
         toggle.addEventListener("click", () => {
-          studyRecordLibraryOpen = !studyRecordLibraryOpen;
-          renderHourStats();
+          if (studyRecordLibraryOpen && !studyRecordLibraryClosing) closeStudyRecordLibrary();
+          else openStudyRecordLibrary();
         });
       }
 
       const calendarToggle = document.querySelector("[data-study-record-calendar-toggle]");
       if (calendarToggle) {
         calendarToggle.addEventListener("click", () => {
-          studyRecordCalendarOpen = !studyRecordCalendarOpen;
-          visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
-          renderHourStats();
+          if (studyRecordCalendarOpen && !studyRecordCalendarClosing) closeStudyRecordCalendar();
+          else openStudyRecordCalendar();
         });
       }
 
@@ -7223,6 +7460,7 @@
             1
           );
           studyRecordCalendarOpen = true;
+          studyRecordCalendarClosing = false;
           renderHourStats();
         });
       });
@@ -7232,10 +7470,21 @@
           selectedStudyRecordDate = button.dataset.studyRecordDate;
           visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
           studyRecordLibraryOpen = true;
+          studyRecordLibraryClosing = false;
           studyRecordCalendarOpen = false;
+          studyRecordCalendarClosing = false;
+          focusedStudyRecordFilter = null;
           renderHourStats();
         });
       });
+
+      const focusClear = document.querySelector("[data-record-focus-clear]");
+      if (focusClear) {
+        focusClear.addEventListener("click", () => {
+          focusedStudyRecordFilter = null;
+          renderHourStats();
+        });
+      }
 
       document.querySelectorAll("[data-record-subject]").forEach(select => {
         select.addEventListener("change", () => {
@@ -7406,9 +7655,9 @@
           </div>
           <div class="breakdown-list">
             ${timerItems.map(item => `
-              <span class="breakdown-chip locked" title="计时器自动记录">
+              <button class="breakdown-chip locked" type="button" data-breakdown-locate-subject="${subject}" data-breakdown-locate-label="${escapeHtml(item.label)}" title="在学习记录库中定位">
                 ${escapeHtml(item.label)} <small>${formatHour(item.hours)}h</small>
-              </span>
+              </button>
             `).join("")}
             ${items.map(item => {
               const editing = editingBreakdownId === item.id;
@@ -7442,6 +7691,11 @@
       normalizeHourBreakdown(timerItems, subjectTotal);
       const manualLimit = Math.max(0, subjectTotal - hourBreakdownAllocated(timerItems));
       normalizeHourBreakdown(items, manualLimit);
+      document.querySelectorAll("[data-breakdown-locate-subject]").forEach(button => {
+        button.addEventListener("click", () => {
+          locateStudyRecordsFromBreakdown(button.dataset.breakdownLocateSubject, button.dataset.breakdownLocateLabel || timerDefaultLabel);
+        });
+      });
       document.querySelectorAll("[data-breakdown-add]").forEach(button => {
         button.addEventListener("click", () => {
           if (!guardEdit()) return;
