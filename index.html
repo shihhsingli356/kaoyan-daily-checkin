@@ -6173,6 +6173,8 @@
           if (!guardEdit()) return;
           const index = items.findIndex(entry => entry.id === button.dataset.breakdownDelete);
           if (index < 0) return;
+          const label = items[index].label?.trim() || "未命名";
+          if (!confirm(`确定删除“${label}”这个标签吗？删除后这部分时长会回到“其他”。`)) return;
           items.splice(index, 1);
           if (editingBreakdownId === button.dataset.breakdownDelete) editingBreakdownId = null;
           saveState();
