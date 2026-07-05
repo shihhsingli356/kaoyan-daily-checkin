@@ -677,6 +677,115 @@
       background: rgba(15, 118, 110, .08);
     }
 
+    .record-library-actions {
+      position: relative;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .record-date-toggle {
+      min-height: 36px;
+      border-radius: 999px;
+      padding: 0 13px;
+      font-weight: 800;
+      color: var(--ink);
+      background: rgba(255, 253, 248, .9);
+    }
+
+    .record-calendar-popover {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 12;
+      width: 318px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .98);
+      box-shadow: 0 20px 46px rgba(8, 19, 22, .18);
+      padding: 12px;
+    }
+
+    .record-calendar-head {
+      display: grid;
+      grid-template-columns: 34px 1fr 34px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .record-calendar-head strong {
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .record-calendar-head button,
+    .record-calendar-day {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .record-calendar-head button {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .record-calendar-week,
+    .record-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+
+    .record-calendar-week {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .record-calendar-day {
+      position: relative;
+      min-height: 34px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .record-calendar-day.muted {
+      color: var(--muted-2);
+    }
+
+    .record-calendar-day.has-record {
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .09);
+    }
+
+    .record-calendar-day.has-record::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      transform: translateX(-50%);
+    }
+
+    .record-calendar-day.active {
+      border-color: rgba(15, 118, 110, .55);
+      background: var(--accent);
+      color: #fff;
+    }
+
     .study-record-library {
       margin-bottom: 14px;
       border: 1px solid var(--line);
@@ -1196,6 +1305,15 @@
 
       .study-record-time {
         grid-template-columns: 1fr;
+      }
+
+      .record-library-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .record-calendar-popover {
+        width: min(318px, calc(100vw - 48px));
       }
     }
 
@@ -2930,6 +3048,7 @@
     html[data-theme="dark"] .pie-card,
     html[data-theme="dark"] .study-record-library,
     html[data-theme="dark"] .study-record-row,
+    html[data-theme="dark"] .record-calendar-popover,
     html[data-theme="dark"] .progress-card,
     html[data-theme="dark"] .summary-ring-card,
     html[data-theme="dark"] .sub-progress-item,
@@ -3180,6 +3299,7 @@
     html[data-theme="dark"] .pie-card,
     html[data-theme="dark"] .study-record-library,
     html[data-theme="dark"] .study-record-row,
+    html[data-theme="dark"] .record-calendar-popover,
     html[data-theme="dark"] .progress-card,
     html[data-theme="dark"] .summary-ring-card,
     html[data-theme="dark"] .sub-progress-item,
@@ -3254,6 +3374,22 @@
       background: #172622;
       color: var(--ink-strong);
       box-shadow: inset 0 0 0 1px rgba(255, 250, 240, .025);
+    }
+
+    html[data-theme="dark"] .record-date-toggle,
+    html[data-theme="dark"] .record-calendar-head button,
+    html[data-theme="dark"] .record-calendar-day {
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .record-calendar-day.has-record {
+      color: var(--accent-strong);
+      background: rgba(102, 208, 191, .14);
+    }
+
+    html[data-theme="dark"] .record-calendar-day.active {
+      color: #071714;
+      background: var(--accent-strong);
     }
 
     html[data-theme="dark"] input[type="number"]:focus,
@@ -4921,6 +5057,9 @@
     let editingBreakdownId = null;
     let activePiePopupSubject = null;
     let studyRecordLibraryOpen = false;
+    let studyRecordCalendarOpen = false;
+    let selectedStudyRecordDate = dateKey(selectedDate);
+    let visibleStudyRecordMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
     let selectedDailyIssueSubject = "cs";
     let selectedDailyIssueCategoryBySubject = { ...legacyIssueCategory };
     let selectedIssueGroup = "cs";
@@ -6147,13 +6286,54 @@
       return Array.from(labels);
     }
 
+    function studyRecordDateKey(record) {
+      return timestampDateKey(Number(record.startMs));
+    }
+
+    function studyRecordDateSet() {
+      return new Set(ensureMeta().studySessions.map(studyRecordDateKey));
+    }
+
+    function renderStudyRecordCalendar() {
+      const markedDates = studyRecordDateSet();
+      const monthStart = new Date(visibleStudyRecordMonth.getFullYear(), visibleStudyRecordMonth.getMonth(), 1);
+      const firstCell = addDays(monthStart, -monthStart.getDay());
+      const cells = [];
+      for (let index = 0; index < 42; index += 1) {
+        const date = addDays(firstCell, index);
+        const key = dateKey(date);
+        const classes = [
+          "record-calendar-day",
+          date.getMonth() === visibleStudyRecordMonth.getMonth() ? "" : "muted",
+          markedDates.has(key) ? "has-record" : "",
+          key === selectedStudyRecordDate ? "active" : ""
+        ].filter(Boolean).join(" ");
+        cells.push(`<button class="${classes}" type="button" data-study-record-date="${key}">${date.getDate()}</button>`);
+      }
+      return `
+        <div class="record-calendar-popover" data-study-record-calendar>
+          <div class="record-calendar-head">
+            <button type="button" data-record-month="-1" title="上个月">‹</button>
+            <strong>${visibleStudyRecordMonth.getFullYear()}年${visibleStudyRecordMonth.getMonth() + 1}月</strong>
+            <button type="button" data-record-month="1" title="下个月">›</button>
+          </div>
+          <div class="record-calendar-week">
+            ${["日", "一", "二", "三", "四", "五", "六"].map(day => `<span>${day}</span>`).join("")}
+          </div>
+          <div class="record-calendar-grid">
+            ${cells.join("")}
+          </div>
+        </div>
+      `;
+    }
+
     function renderStudyRecordLibrary() {
-      const sessions = ensureMeta().studySessions;
+      const sessions = ensureMeta().studySessions.filter(record => studyRecordDateKey(record) === selectedStudyRecordDate);
       return `
         <div class="study-record-library">
           <div class="study-record-head">
             <strong>学习记录库</strong>
-            <span class="hint">共 ${sessions.length} 条，可修改学科、标签和起止时间</span>
+            <span class="hint">${selectedStudyRecordDate} · 共 ${sessions.length} 条，可修改学科、标签和起止时间</span>
           </div>
           <div class="study-record-list">
             ${sessions.length ? sessions.map(record => {
@@ -6177,7 +6357,7 @@
                   </div>
                 </div>
               `;
-            }).join("") : '<div class="empty">还没有通过计时器或手动确认添加的学习记录。</div>'}
+            }).join("") : '<div class="empty">这一天还没有通过计时器或手动确认添加的学习记录。</div>'}
           </div>
         </div>
       `;
@@ -6196,7 +6376,11 @@
               <button class="${key === selectedHourRange ? "active" : ""}" data-hour-range="${key}">${label}</button>
             `).join("")}
           </div>
-          <button class="record-library-toggle" type="button" data-study-record-toggle>${studyRecordLibraryOpen ? "收起记录库" : "学习记录库"}</button>
+          <div class="record-library-actions">
+            <button class="record-date-toggle" type="button" data-study-record-calendar-toggle>${selectedStudyRecordDate}</button>
+            <button class="record-library-toggle" type="button" data-study-record-toggle>${studyRecordLibraryOpen ? "收起记录库" : "学习记录库"}</button>
+            ${studyRecordCalendarOpen ? renderStudyRecordCalendar() : ""}
+          </div>
         </div>
         ${studyRecordLibraryOpen ? renderStudyRecordLibrary() : ""}
         <div class="hour-panel" style="margin-top:12px">
@@ -6270,6 +6454,37 @@
         });
       }
 
+      const calendarToggle = document.querySelector("[data-study-record-calendar-toggle]");
+      if (calendarToggle) {
+        calendarToggle.addEventListener("click", () => {
+          studyRecordCalendarOpen = !studyRecordCalendarOpen;
+          visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
+          renderHourStats();
+        });
+      }
+
+      document.querySelectorAll("[data-record-month]").forEach(button => {
+        button.addEventListener("click", () => {
+          visibleStudyRecordMonth = new Date(
+            visibleStudyRecordMonth.getFullYear(),
+            visibleStudyRecordMonth.getMonth() + Number(button.dataset.recordMonth || 0),
+            1
+          );
+          studyRecordCalendarOpen = true;
+          renderHourStats();
+        });
+      });
+
+      document.querySelectorAll("[data-study-record-date]").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedStudyRecordDate = button.dataset.studyRecordDate;
+          visibleStudyRecordMonth = new Date(fromKey(selectedStudyRecordDate).getFullYear(), fromKey(selectedStudyRecordDate).getMonth(), 1);
+          studyRecordLibraryOpen = true;
+          studyRecordCalendarOpen = false;
+          renderHourStats();
+        });
+      });
+
       document.querySelectorAll("[data-record-subject]").forEach(select => {
         select.addEventListener("change", () => {
           const labelSelect = document.querySelector(`[data-record-label="${select.dataset.recordSubject}"]`);
@@ -6297,7 +6512,10 @@
             return;
           }
           applyStudySession(sessions[index], -1);
-          sessions[index] = nextRecord;
+          const nextSessions = ensureMeta().studySessions;
+          const nextIndex = nextSessions.findIndex(record => record.id === id);
+          if (nextIndex < 0) return;
+          nextSessions[nextIndex] = nextRecord;
           applyStudySession(nextRecord, 1);
           saveState();
           renderAll();
@@ -6313,7 +6531,9 @@
           if (index < 0) return;
           if (!confirm("确定删除这条学习记录吗？对应的统计时长也会同步扣除。")) return;
           applyStudySession(sessions[index], -1);
-          sessions.splice(index, 1);
+          const nextSessions = ensureMeta().studySessions;
+          const nextIndex = nextSessions.findIndex(record => record.id === id);
+          if (nextIndex >= 0) nextSessions.splice(nextIndex, 1);
           saveState();
           renderAll();
         });
@@ -6863,6 +7083,8 @@
       grid.querySelectorAll(".day[data-date]:not(.out)").forEach(day => {
         day.addEventListener("click", () => {
           selectedDate = fromKey(day.dataset.date);
+          selectedStudyRecordDate = day.dataset.date;
+          visibleStudyRecordMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
           selectedPhaseName = getPhase(day.dataset.date).name;
           renderAll();
           playDailyDateFocus();
