@@ -661,20 +661,44 @@
     }
 
     .hour-tools {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: auto minmax(160px, 1fr) auto;
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
     }
 
-    .record-library-toggle {
+    .hour-insight-actions {
+      display: inline-flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .record-library-toggle,
+    .study-distribution-toggle {
       min-height: 36px;
       border-radius: 999px;
       padding: 0 14px;
       font-weight: 800;
       color: var(--accent-strong);
       background: rgba(15, 118, 110, .08);
+    }
+
+    .study-distribution-toggle {
+      color: var(--ink);
+      background: rgba(255, 253, 248, .94);
+      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .18);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .study-distribution-toggle:hover,
+    .study-distribution-toggle.active {
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .1);
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .34), 0 12px 26px rgba(15, 118, 110, .1);
     }
 
     .record-library-actions {
@@ -784,6 +808,269 @@
       border-color: rgba(15, 118, 110, .55);
       background: var(--accent);
       color: #fff;
+    }
+
+    .study-distribution-panel {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, .08), rgba(255, 253, 248, .92) 38%, rgba(245, 158, 11, .07));
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .distribution-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .distribution-head strong {
+      display: block;
+      color: var(--ink-strong);
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .distribution-subjects {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+
+    .distribution-subject-toggle,
+    .distribution-all-toggle {
+      min-height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, .8);
+      color: var(--muted);
+      padding: 0 10px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+    }
+
+    .distribution-subject-toggle.active {
+      border-color: color-mix(in srgb, var(--subject-color) 42%, var(--line));
+      background: color-mix(in srgb, var(--subject-color) 12%, #fff);
+      color: var(--ink-strong);
+    }
+
+    .distribution-subject-toggle::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: var(--subject-color);
+      vertical-align: 1px;
+      opacity: .45;
+    }
+
+    .distribution-subject-toggle.active::before {
+      opacity: 1;
+    }
+
+    .distribution-subject-toggle:hover,
+    .distribution-all-toggle:hover {
+      transform: translateY(-1px);
+      color: var(--accent-strong);
+      border-color: rgba(15, 118, 110, .32);
+    }
+
+    .distribution-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .distribution-kpi {
+      border: 1px solid rgba(8, 19, 22, .09);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .74);
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .distribution-kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .distribution-kpi b {
+      display: block;
+      color: var(--ink-strong);
+      font-size: 18px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .distribution-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 1.2fr) minmax(260px, .8fr);
+      gap: 10px;
+    }
+
+    .distribution-card {
+      border: 1px solid rgba(8, 19, 22, .09);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .76);
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .distribution-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .distribution-card strong {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: var(--ink-strong);
+      font-size: 13px;
+    }
+
+    .distribution-card strong span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .rhythm-bars {
+      display: grid;
+      grid-template-columns: repeat(24, minmax(12px, 1fr));
+      gap: 4px;
+      align-items: end;
+      min-height: 148px;
+      padding-top: 8px;
+    }
+
+    .rhythm-bar {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      align-items: end;
+      gap: 6px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .rhythm-bar span {
+      display: block;
+      min-height: 4px;
+      height: var(--bar-height);
+      border-radius: 999px 999px 4px 4px;
+      background:
+        linear-gradient(180deg, rgba(15, 118, 110, .86), rgba(15, 118, 110, .22));
+      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .12);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .rhythm-bar em {
+      min-height: 12px;
+      font-style: normal;
+    }
+
+    .rhythm-bar:hover span {
+      transform: translateY(-3px) scaleX(1.16);
+      box-shadow: 0 10px 18px rgba(15, 118, 110, .18);
+    }
+
+    .heatmap-scroll {
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: 34px repeat(24, minmax(20px, 1fr));
+      gap: 4px;
+      min-width: 680px;
+      align-items: center;
+    }
+
+    .heat-label,
+    .heat-hour {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .heat-label {
+      text-align: left;
+    }
+
+    .heat-cell {
+      height: 20px;
+      border-radius: 5px;
+      background: rgba(15, 118, 110, var(--heat-alpha));
+      box-shadow: inset 0 0 0 1px rgba(8, 19, 22, .045);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .heat-cell:hover {
+      transform: scale(1.16);
+      box-shadow: 0 8px 16px rgba(15, 118, 110, .16);
+    }
+
+    .period-list,
+    .label-rank {
+      display: grid;
+      gap: 9px;
+    }
+
+    .period-row,
+    .label-rank-row {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 9px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .period-track,
+    .label-rank-track {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(8, 19, 22, .07);
+      overflow: hidden;
+    }
+
+    .period-track span,
+    .label-rank-track span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(15, 118, 110, .72), rgba(245, 158, 11, .64));
+    }
+
+    .study-distribution-empty {
+      border: 1px dashed rgba(8, 19, 22, .16);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 18px;
+      background: rgba(255, 253, 248, .58);
+      font-weight: 800;
     }
 
     .study-record-library {
@@ -934,41 +1221,91 @@
 
     .pie-layout {
       display: grid;
-      grid-template-columns: 164px 128px minmax(0, 1fr);
-      gap: 14px;
-      align-items: center;
+      grid-template-columns: 194px 170px minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
       min-width: 0;
     }
 
     .pie {
-      width: 156px;
-      height: 156px;
+      width: 184px;
+      height: 184px;
       border-radius: 50%;
       display: grid;
       place-items: center;
       border: 0;
-      background: #e5eaf3;
-      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .08);
+      background:
+        radial-gradient(circle at center, rgba(255, 255, 255, .96) 0 40%, rgba(255, 255, 255, .72) 41% 48%, transparent 49%),
+        radial-gradient(circle at 42% 32%, rgba(15, 118, 110, .1), transparent 58%);
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .08), 0 16px 36px rgba(15, 118, 110, .08);
       cursor: pointer;
       padding: 0;
       position: relative;
-      transition: transform .18s ease, box-shadow .18s ease;
+      overflow: hidden;
+      transition: transform .22s ease, box-shadow .22s ease;
     }
 
     .pie:hover {
-      transform: translateY(-1px);
-      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .1), 0 14px 28px rgba(15, 118, 110, .12);
+      transform: translateY(-2px) scale(1.055);
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .1), 0 22px 42px rgba(15, 118, 110, .18);
     }
 
     .pie-wrap {
       position: relative;
-      width: 156px;
+      width: 184px;
+      height: 184px;
       min-width: 0;
     }
 
+    .pie-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: auto;
+    }
+
+    .pie-track,
+    .pie-segment {
+      fill: none;
+    }
+
+    .pie-track {
+      stroke: #e8edf5;
+      stroke-width: 18;
+    }
+
+    .pie-segment {
+      stroke-width: 18;
+      stroke-linecap: butt;
+      filter: drop-shadow(0 4px 8px rgba(8, 19, 22, .08));
+      transition: stroke-width .18s ease, filter .18s ease, opacity .18s ease;
+      pointer-events: stroke;
+    }
+
+    .pie-segment:hover {
+      stroke-width: 21;
+      filter: drop-shadow(0 12px 18px rgba(8, 19, 22, .2));
+      opacity: 1;
+    }
+
+    .pie-segment.active {
+      stroke-width: 21;
+      filter: drop-shadow(0 12px 20px rgba(15, 118, 110, .2));
+    }
+
+    .pie-empty {
+      stroke: #e5eaf3;
+      stroke-width: 18;
+      fill: none;
+    }
+
     .pie-total {
-      width: 86px;
-      height: 86px;
+      position: relative;
+      z-index: 2;
+      width: 94px;
+      height: 94px;
       border-radius: 50%;
       display: grid;
       place-items: center;
@@ -982,7 +1319,7 @@
     .pie-total b {
       display: block;
       color: var(--ink);
-      font-size: 20px;
+      font-size: 22px;
       line-height: 1.1;
     }
 
@@ -995,22 +1332,22 @@
 
     .pie-subjects {
       display: grid;
-      gap: 7px;
+      gap: 8px;
       align-content: center;
       min-width: 0;
     }
 
     .pie-subject-button {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
       align-items: center;
-      min-height: 30px;
+      min-height: 36px;
       border: 1px solid var(--line);
-      border-radius: 999px;
+      border-radius: 8px;
       background: rgba(255, 253, 248, .88);
       color: var(--muted);
-      padding: 0 9px;
+      padding: 6px 9px;
       cursor: pointer;
       font: inherit;
       font-size: 12px;
@@ -1031,16 +1368,29 @@
       white-space: nowrap;
     }
 
+    .pie-subject-main {
+      flex: 1 1 auto;
+      gap: 0;
+    }
+
+    .pie-subject-meta {
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
     .pie-subject-button:hover,
     .pie-subject-button.active {
-      border-color: rgba(15, 118, 110, .38);
-      background: rgba(15, 118, 110, .08);
+      border-color: color-mix(in srgb, var(--subject-color) 46%, var(--line));
+      background: color-mix(in srgb, var(--subject-color) 11%, #fff);
       color: var(--accent-strong);
       transform: translateY(-1px);
     }
 
     .hour-breakdown-panel {
-      min-height: 156px;
+      min-height: 118px;
+      height: 100%;
       min-width: 0;
       box-sizing: border-box;
       border: 1px solid var(--line);
@@ -1048,6 +1398,7 @@
       background: rgba(255, 253, 248, .72);
       padding: 10px;
       overflow: visible;
+      align-self: stretch;
     }
 
     .breakdown-head {
@@ -1191,8 +1542,8 @@
 
     .pie-popup-card {
       position: absolute;
-      left: 126px;
-      top: 12px;
+      left: 154px;
+      top: 18px;
       z-index: 5;
       width: 210px;
       border: 1px solid var(--line);
@@ -1242,7 +1593,14 @@
     html[data-theme="dark"] .breakdown-add,
     html[data-theme="dark"] .breakdown-delete,
     html[data-theme="dark"] .breakdown-confirm,
-    html[data-theme="dark"] .pie-popup-card {
+    html[data-theme="dark"] .pie-popup-card,
+    html[data-theme="dark"] .study-distribution-toggle,
+    html[data-theme="dark"] .study-distribution-panel,
+    html[data-theme="dark"] .distribution-card,
+    html[data-theme="dark"] .distribution-kpi,
+    html[data-theme="dark"] .distribution-subject-toggle,
+    html[data-theme="dark"] .distribution-all-toggle,
+    html[data-theme="dark"] .study-distribution-empty {
       border-color: rgba(255, 250, 240, .13);
       background: rgba(27, 40, 37, .96);
       color: var(--ink);
@@ -1253,6 +1611,29 @@
       border-color: rgba(102, 208, 191, .46);
       background: rgba(102, 208, 191, .14);
       color: var(--accent-strong);
+    }
+
+    html[data-theme="dark"] .distribution-subject-toggle.active,
+    html[data-theme="dark"] .study-distribution-toggle:hover,
+    html[data-theme="dark"] .study-distribution-toggle.active {
+      border-color: rgba(102, 208, 191, .45);
+      background: rgba(102, 208, 191, .14);
+      color: var(--ink-strong);
+    }
+
+    html[data-theme="dark"] .pie-track,
+    html[data-theme="dark"] .pie-empty {
+      stroke: rgba(255, 250, 240, .18);
+    }
+
+    html[data-theme="dark"] .heat-cell {
+      background: rgba(102, 208, 191, var(--heat-alpha));
+      box-shadow: inset 0 0 0 1px rgba(255, 250, 240, .04);
+    }
+
+    html[data-theme="dark"] .period-track,
+    html[data-theme="dark"] .label-rank-track {
+      background: rgba(255, 250, 240, .12);
     }
 
     html[data-theme="dark"] .breakdown-item input {
@@ -1269,12 +1650,65 @@
     }
 
     @media (max-width: 980px) {
+      .hour-tools {
+        grid-template-columns: 1fr auto;
+      }
+
+      .hour-insight-actions {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
       .pie-layout {
-        grid-template-columns: 156px minmax(112px, .48fr) minmax(0, 1fr);
+        grid-template-columns: 184px minmax(142px, .48fr) minmax(0, 1fr);
+      }
+
+      .distribution-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .distribution-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 760px) {
+      .hour-tools {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+
+      .hour-insight-actions,
+      .record-library-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .record-library-actions {
+        flex-wrap: wrap;
+      }
+
+      .distribution-head {
+        display: grid;
+      }
+
+      .distribution-subjects {
+        justify-content: flex-start;
+      }
+
+      .distribution-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .rhythm-bars {
+        grid-template-columns: repeat(24, minmax(7px, 1fr));
+        gap: 2px;
+      }
+
+      .rhythm-bar {
+        font-size: 9px;
+      }
+
       .pie-layout {
         grid-template-columns: 1fr;
         justify-items: stretch;
@@ -1290,6 +1724,11 @@
 
       .pie-subjects {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hour-breakdown-panel {
+        height: auto;
+        align-self: stretch;
       }
 
       .pie-popup-card {
@@ -1309,7 +1748,7 @@
 
       .record-library-actions {
         width: 100%;
-        justify-content: flex-end;
+        justify-content: flex-start;
       }
 
       .record-calendar-popover {
@@ -2256,8 +2695,7 @@
       .task-grid,
       .review,
       .hour-panel,
-      .subject-issue-grid,
-      .pie-layout {
+      .subject-issue-grid {
         grid-template-columns: 1fr;
       }
 
@@ -4724,6 +5162,14 @@
       all: "至今"
     };
 
+    const distributionPeriods = [
+      { label: "凌晨", start: 0, end: 6 },
+      { label: "上午", start: 6, end: 12 },
+      { label: "下午", start: 12, end: 18 },
+      { label: "晚上", start: 18, end: 24 }
+    ];
+    const distributionWeekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+
     const issueChecks = [
       ["mastered", "确认掌握"],
       ["second", "二次确认"],
@@ -5056,6 +5502,8 @@
     let selectedHourSubject = "cs";
     let editingBreakdownId = null;
     let activePiePopupSubject = null;
+    let studyDistributionOpen = false;
+    let selectedDistributionSubjects = new Set(subjectOrder);
     let studyRecordLibraryOpen = false;
     let studyRecordCalendarOpen = false;
     let selectedStudyRecordDate = dateKey(selectedDate);
@@ -6363,6 +6811,279 @@
       `;
     }
 
+    function distributionSubjectSet() {
+      selectedDistributionSubjects = new Set(
+        Array.from(selectedDistributionSubjects).filter(subject => subjectOrder.includes(subject))
+      );
+      return selectedDistributionSubjects;
+    }
+
+    function rangeContainsRecordStart(range, record) {
+      const key = studyRecordDateKey(record);
+      return key >= dateKey(range.start) && key <= dateKey(range.end);
+    }
+
+    function addSessionToDistribution(stats, record) {
+      let cursor = Number(record.startMs);
+      const end = Number(record.endMs);
+      if (!Number.isFinite(cursor) || !Number.isFinite(end) || end <= cursor) return;
+
+      while (cursor < end) {
+        const cursorDate = new Date(cursor);
+        const nextHour = new Date(cursorDate);
+        nextHour.setMinutes(0, 0, 0);
+        nextHour.setHours(nextHour.getHours() + 1);
+        const next = Math.min(end, nextHour.getTime());
+        const minutes = Math.max(0, (next - cursor) / 60000);
+        if (minutes > 0) {
+          const hour = cursorDate.getHours();
+          const weekday = cursorDate.getDay();
+          const label = (record.label || timerDefaultLabel).trim() || timerDefaultLabel;
+          stats.totalMinutes += minutes;
+          stats.hourMinutes[hour] += minutes;
+          stats.weekHourMinutes[weekday][hour] += minutes;
+          stats.subjectMinutes[record.subject] += minutes;
+          stats.labelMinutes.set(label, (stats.labelMinutes.get(label) || 0) + minutes);
+          stats.activeDateKeys.add(dateKey(cursorDate));
+        }
+        cursor = next;
+      }
+    }
+
+    function buildStudyDistribution(range) {
+      const selectedSubjects = distributionSubjectSet();
+      const stats = {
+        records: [],
+        totalMinutes: 0,
+        activeDateKeys: new Set(),
+        hourMinutes: Array(24).fill(0),
+        weekHourMinutes: Array.from({ length: 7 }, () => Array(24).fill(0)),
+        subjectMinutes: Object.fromEntries(subjectOrder.map(subject => [subject, 0])),
+        labelMinutes: new Map()
+      };
+
+      ensureMeta().studySessions.forEach(record => {
+        if (!selectedSubjects.has(record.subject)) return;
+        if (!rangeContainsRecordStart(range, record)) return;
+        stats.records.push(record);
+        addSessionToDistribution(stats, record);
+      });
+
+      return stats;
+    }
+
+    function maxArrayValue(values) {
+      return values.reduce((max, value) => Math.max(max, Number(value || 0)), 0);
+    }
+
+    function topIndex(values) {
+      let bestIndex = 0;
+      values.forEach((value, index) => {
+        if (value > values[bestIndex]) bestIndex = index;
+      });
+      return bestIndex;
+    }
+
+    function formatHourRangeLabel(hour) {
+      const next = (hour + 1) % 24;
+      return `${String(hour).padStart(2, "0")}:00-${String(next).padStart(2, "0")}:00`;
+    }
+
+    function distributionPeriodMinutes(stats) {
+      return distributionPeriods.map(period => {
+        const minutes = stats.hourMinutes
+          .slice(period.start, period.end)
+          .reduce((sum, value) => sum + value, 0);
+        return { ...period, minutes };
+      });
+    }
+
+    function distributionTopLabels(stats) {
+      return Array.from(stats.labelMinutes, ([label, minutes]) => ({ label, minutes }))
+        .filter(item => item.minutes > 0)
+        .sort((a, b) => b.minutes - a.minutes)
+        .slice(0, 5);
+    }
+
+    function renderDistributionSummary(stats) {
+      const peakHour = topIndex(stats.hourMinutes);
+      const periods = distributionPeriodMinutes(stats);
+      const peakPeriod = periods.reduce((best, item) => item.minutes > best.minutes ? item : best, periods[0]);
+      const topSubject = subjectOrder.reduce((best, subject) => (
+        stats.subjectMinutes[subject] > stats.subjectMinutes[best] ? subject : best
+      ), subjectOrder[0]);
+      const totalHours = stats.totalMinutes / 60;
+      return `
+        <div class="distribution-summary">
+          <div class="distribution-kpi"><span>记录时长</span><b>${formatHour(totalHours)}h</b></div>
+          <div class="distribution-kpi"><span>高峰小时</span><b>${stats.totalMinutes ? formatHourRangeLabel(peakHour) : "暂无"}</b></div>
+          <div class="distribution-kpi"><span>偏好时段</span><b>${stats.totalMinutes ? peakPeriod.label : "暂无"}</b></div>
+          <div class="distribution-kpi"><span>主力学科</span><b>${stats.totalMinutes ? subjects[topSubject] : "暂无"}</b></div>
+        </div>
+      `;
+    }
+
+    function renderRhythmBars(stats) {
+      const max = Math.max(maxArrayValue(stats.hourMinutes), 1);
+      return `
+        <div class="rhythm-bars" aria-label="24小时学习时间分布">
+          ${stats.hourMinutes.map((minutes, hour) => {
+            const height = Math.max(4, Math.round(minutes / max * 132));
+            return `
+              <div class="rhythm-bar" title="${formatHourRangeLabel(hour)} · ${formatHour(minutes / 60)}h">
+                <span style="--bar-height:${height}px"></span>
+                <em>${hour % 3 === 0 ? hour : ""}</em>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderHeatmap(stats) {
+      const max = Math.max(...stats.weekHourMinutes.flat(), 1);
+      const hourHead = Array.from({ length: 24 }, (_, hour) => `<span class="heat-hour">${hour % 3 === 0 ? hour : ""}</span>`).join("");
+      const rows = stats.weekHourMinutes.map((row, weekday) => `
+        <span class="heat-label">${distributionWeekdays[weekday]}</span>
+        ${row.map((minutes, hour) => {
+          const alpha = (0.08 + minutes / max * 0.72).toFixed(3);
+          return `<span class="heat-cell" style="--heat-alpha:${alpha}" title="${distributionWeekdays[weekday]} ${formatHourRangeLabel(hour)} · ${formatHour(minutes / 60)}h"></span>`;
+        }).join("")}
+      `).join("");
+      return `
+        <div class="heatmap-scroll">
+          <div class="heatmap-grid" aria-label="周内小时热力图">
+            <span></span>${hourHead}${rows}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPeriodList(stats) {
+      const periods = distributionPeriodMinutes(stats);
+      const max = Math.max(...periods.map(item => item.minutes), 1);
+      return `
+        <div class="period-list">
+          ${periods.map(item => `
+            <div class="period-row">
+              <span>${item.label}</span>
+              <div class="period-track"><span style="width:${Math.round(item.minutes / max * 100)}%"></span></div>
+              <b>${formatHour(item.minutes / 60)}h</b>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderLabelRank(stats) {
+      const labels = distributionTopLabels(stats);
+      const max = Math.max(...labels.map(item => item.minutes), 1);
+      if (!labels.length) return '<div class="study-distribution-empty">还没有可用于标签排行的学习记录。</div>';
+      return `
+        <div class="label-rank">
+          ${labels.map(item => `
+            <div class="label-rank-row">
+              <span>${escapeHtml(item.label)}</span>
+              <div class="label-rank-track"><span style="width:${Math.round(item.minutes / max * 100)}%"></span></div>
+              <b>${formatHour(item.minutes / 60)}h</b>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderStudyDistributionPanel(range) {
+      const stats = buildStudyDistribution(range);
+      const selectedSubjects = distributionSubjectSet();
+      return `
+        <section class="study-distribution-panel">
+          <div class="distribution-head">
+            <div>
+              <strong>学习时间分布</strong>
+              <span class="hint">${dateKey(range.start)} 至 ${dateKey(range.end)} · 来自记录库 ${stats.records.length} 条记录</span>
+            </div>
+            <div class="distribution-subjects" aria-label="参与统计的科目">
+              ${subjectOrder.map(subject => `
+                <button class="distribution-subject-toggle ${selectedSubjects.has(subject) ? "active" : ""}" type="button" data-distribution-subject="${subject}" style="--subject-color:${subjectColors[subject]}">${subjects[subject]}</button>
+              `).join("")}
+              <button class="distribution-all-toggle" type="button" data-distribution-all>全部</button>
+            </div>
+          </div>
+          ${renderDistributionSummary(stats)}
+          ${stats.totalMinutes > 0 ? `
+            <div class="distribution-grid">
+              <article class="distribution-card wide">
+                <strong>24 小时节律<span>按实际起止时间切到每个小时</span></strong>
+                ${renderRhythmBars(stats)}
+              </article>
+              <article class="distribution-card wide">
+                <strong>周几 × 小时热力<span>颜色越深，学习越集中</span></strong>
+                ${renderHeatmap(stats)}
+              </article>
+              <article class="distribution-card">
+                <strong>时段构成<span>凌晨 / 上午 / 下午 / 晚上</span></strong>
+                ${renderPeriodList(stats)}
+              </article>
+              <article class="distribution-card">
+                <strong>标签热度<span>按所选科目聚合</span></strong>
+                ${renderLabelRank(stats)}
+              </article>
+            </div>
+          ` : '<div class="study-distribution-empty">当前范围和科目下还没有学习记录。先用计时器或手动确认添加记录后，这里会生成分布图。</div>'}
+        </section>
+      `;
+    }
+
+    function renderSubjectDonut(totals) {
+      const total = subjectOrder.reduce((sum, subject) => sum + Math.max(0, Number(totals[subject] || 0)), 0);
+      const radius = 72;
+      const circumference = 2 * Math.PI * radius;
+      if (!total) {
+        return `
+          <svg class="pie-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="pie-empty" cx="100" cy="100" r="${radius}"></circle>
+          </svg>
+        `;
+      }
+
+      let cursor = 0;
+      const segments = subjectOrder.map(subject => {
+        const value = Math.max(0, Number(totals[subject] || 0));
+        if (!value) return "";
+        const share = value / total;
+        const segmentGap = total === value ? 0 : 10;
+        const dash = total === value ? circumference : Math.max(1, circumference * share - segmentGap);
+        const gap = Math.max(0, circumference - dash);
+        const offset = -cursor * circumference - segmentGap / 2;
+        cursor += share;
+        return `
+          <circle class="pie-segment ${subject === selectedHourSubject ? "active" : ""}" data-pie-segment="${subject}" cx="100" cy="100" r="${radius}" stroke="${subjectColors[subject]}" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}">
+            <title>${subjects[subject]} ${formatHour(value)}h</title>
+          </circle>
+        `;
+      }).join("");
+
+      return `
+        <svg class="pie-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <g transform="rotate(-90 100 100)">
+            <circle class="pie-track" cx="100" cy="100" r="${radius}"></circle>
+            ${segments}
+          </g>
+        </svg>
+      `;
+    }
+
+    function renderPieSubjectButton(range, totals, totalHours, subject) {
+      const hours = Math.max(0, Number(totals[subject] || 0));
+      const percent = totalHours > 0 ? Math.round(hours / totalHours * 100) : 0;
+      return `
+        <button class="pie-subject-button ${subject === selectedHourSubject ? "active" : ""}" data-hour-subject="${subject}" style="--subject-color:${subjectColors[subject]}">
+          <span class="pie-subject-main"><i class="hour-color" style="background:${subjectColors[subject]}"></i>${subjects[subject]}</span>
+          <span class="pie-subject-meta">${percent}% · ${formatHour(hours)}h</span>
+        </button>
+      `;
+    }
+
     function renderHourStats() {
       const range = getHourRange(selectedHourRange);
       const totals = sumHoursBetween(range.start, range.end);
@@ -6376,12 +7097,16 @@
               <button class="${key === selectedHourRange ? "active" : ""}" data-hour-range="${key}">${label}</button>
             `).join("")}
           </div>
+          <div class="hour-insight-actions">
+            <button class="study-distribution-toggle ${studyDistributionOpen ? "active" : ""}" type="button" data-study-distribution-toggle>${studyDistributionOpen ? "收起时间分布" : "时间分布"}</button>
+          </div>
           <div class="record-library-actions">
             <button class="record-date-toggle" type="button" data-study-record-calendar-toggle>${selectedStudyRecordDate}</button>
             <button class="record-library-toggle" type="button" data-study-record-toggle>${studyRecordLibraryOpen ? "收起记录库" : "学习记录库"}</button>
             ${studyRecordCalendarOpen ? renderStudyRecordCalendar() : ""}
           </div>
         </div>
+        ${studyDistributionOpen ? renderStudyDistributionPanel(range) : ""}
         ${studyRecordLibraryOpen ? renderStudyRecordLibrary() : ""}
         <div class="hour-panel" style="margin-top:12px">
           <article class="hour-box">
@@ -6399,18 +7124,14 @@
             <strong>学科占比</strong>
             <div class="pie-layout">
               <div class="pie-wrap">
-                <button class="pie" type="button" data-hour-pie style="background:${pieGradient(totals)}" aria-label="查看学科占比明细">
+                <button class="pie" type="button" data-hour-pie aria-label="查看学科占比明细">
+                  ${renderSubjectDonut(totals)}
                   <div class="pie-total"><span>总计</span><b>${formatHour(totalHours)}</b><span>小时</span></div>
                 </button>
                 ${activePiePopupSubject ? renderPiePopup(selectedHourRange, range, activePiePopupSubject, totals[activePiePopupSubject]) : ""}
               </div>
               <div class="pie-subjects" aria-label="学科选择">
-                ${subjectOrder.map(subject => `
-                  <button class="pie-subject-button ${subject === selectedHourSubject ? "active" : ""}" data-hour-subject="${subject}">
-                    <span><i class="hour-color" style="background:${subjectColors[subject]}"></i>${subjects[subject]}</span>
-                    <b>${formatHour(totals[subject])}h</b>
-                  </button>
-                `).join("")}
+                ${subjectOrder.map(subject => renderPieSubjectButton(range, totals, totalHours, subject)).join("")}
               </div>
               ${renderHourBreakdownEditor(selectedHourRange, range, selectedHourSubject, totals[selectedHourSubject])}
             </div>
@@ -6434,15 +7155,46 @@
       const pie = document.querySelector("[data-hour-pie]");
       if (pie) {
         pie.addEventListener("click", event => {
-          const subject = subjectFromPieClick(event, totals);
+          const segmentSubject = event.target.closest("[data-pie-segment]")?.dataset.pieSegment;
+          const subject = subjectOrder.includes(segmentSubject) ? segmentSubject : subjectFromPieClick(event, totals);
           selectedHourSubject = subject;
           activePiePopupSubject = activePiePopupSubject === subject ? null : subject;
           editingBreakdownId = null;
           renderHourStats();
         });
       }
+      attachStudyDistributionEvents();
       attachStudyRecordEvents();
       attachHourBreakdownEvents(range, totals);
+    }
+
+    function attachStudyDistributionEvents() {
+      const toggle = document.querySelector("[data-study-distribution-toggle]");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          studyDistributionOpen = !studyDistributionOpen;
+          renderHourStats();
+        });
+      }
+
+      document.querySelectorAll("[data-distribution-subject]").forEach(button => {
+        button.addEventListener("click", () => {
+          const subject = button.dataset.distributionSubject;
+          if (!subjectOrder.includes(subject)) return;
+          const selected = distributionSubjectSet();
+          if (selected.has(subject)) selected.delete(subject);
+          else selected.add(subject);
+          renderHourStats();
+        });
+      });
+
+      const allButton = document.querySelector("[data-distribution-all]");
+      if (allButton) {
+        allButton.addEventListener("click", () => {
+          selectedDistributionSubjects = new Set(subjectOrder);
+          renderHourStats();
+        });
+      }
     }
 
     function attachStudyRecordEvents() {
