@@ -660,6 +660,113 @@
       padding: 16px;
     }
 
+    .hour-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .record-library-toggle {
+      min-height: 36px;
+      border-radius: 999px;
+      padding: 0 14px;
+      font-weight: 800;
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .08);
+    }
+
+    .study-record-library {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .82);
+      padding: 12px;
+    }
+
+    .study-record-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .study-record-head strong {
+      color: var(--ink-strong);
+      font-size: 15px;
+    }
+
+    .study-record-list {
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .study-record-row {
+      display: grid;
+      grid-template-columns: 88px 108px minmax(170px, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(8, 19, 22, .1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .72);
+      padding: 8px;
+    }
+
+    .study-record-row select,
+    .study-record-row input {
+      width: 100%;
+      height: 34px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 8px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .study-record-time {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .study-record-duration {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .study-record-save,
+    .study-record-delete {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .study-record-save {
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .1);
+    }
+
+    .study-record-delete {
+      color: var(--red);
+      background: rgba(220, 38, 38, .08);
+    }
+
     .hour-panel {
       display: grid;
       grid-template-columns: minmax(280px, .95fr) minmax(280px, 1.05fr);
@@ -1081,6 +1188,14 @@
         top: 124px;
         transform: translateX(-50%);
         width: min(230px, calc(100vw - 64px));
+      }
+
+      .study-record-row {
+        grid-template-columns: 1fr;
+      }
+
+      .study-record-time {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -2813,6 +2928,8 @@
     html[data-theme="dark"] .calendar-metric,
     html[data-theme="dark"] .hour-box,
     html[data-theme="dark"] .pie-card,
+    html[data-theme="dark"] .study-record-library,
+    html[data-theme="dark"] .study-record-row,
     html[data-theme="dark"] .progress-card,
     html[data-theme="dark"] .summary-ring-card,
     html[data-theme="dark"] .sub-progress-item,
@@ -3061,6 +3178,8 @@
     html[data-theme="dark"] .calendar-metric,
     html[data-theme="dark"] .hour-box,
     html[data-theme="dark"] .pie-card,
+    html[data-theme="dark"] .study-record-library,
+    html[data-theme="dark"] .study-record-row,
     html[data-theme="dark"] .progress-card,
     html[data-theme="dark"] .summary-ring-card,
     html[data-theme="dark"] .sub-progress-item,
@@ -3128,6 +3247,8 @@
 
     html[data-theme="dark"] input[type="number"],
     html[data-theme="dark"] .hours-entry select,
+    html[data-theme="dark"] .study-record-row select,
+    html[data-theme="dark"] .study-record-row input,
     html[data-theme="dark"] textarea {
       border-color: rgba(255, 250, 240, .24);
       background: #172622;
@@ -4799,6 +4920,7 @@
     let selectedHourSubject = "cs";
     let editingBreakdownId = null;
     let activePiePopupSubject = null;
+    let studyRecordLibraryOpen = false;
     let selectedDailyIssueSubject = "cs";
     let selectedDailyIssueCategoryBySubject = { ...legacyIssueCategory };
     let selectedIssueGroup = "cs";
@@ -4931,6 +5053,11 @@
           if (label && label !== "未命名") labels.add(label);
         });
       });
+      (meta.studySessions || []).forEach(item => {
+        if (item.subject !== subject) return;
+        const label = typeof item.label === "string" ? item.label.trim() : "";
+        if (label && label !== "未命名") labels.add(label);
+      });
       return Array.from(labels);
     }
 
@@ -5020,22 +5147,82 @@
       item.hours = roundHour(Number(item.hours || 0) + hours);
     }
 
-    function applyStudyTimerToState(segments, subject, label) {
-      const allocations = {};
-      segments.forEach(segment => {
-        const segmentAllocations = timerAllocationsByDate(segment.start, segment.end);
-        Object.entries(segmentAllocations).forEach(([key, units]) => {
-          allocations[key] = (allocations[key] || 0) + units;
-        });
-      });
-      let recordedHours = 0;
+    function removeHoursFromDayBreakdown(key, subject, label, hours) {
+      const normalizedLabel = (label || timerDefaultLabel).trim() || timerDefaultLabel;
+      if (normalizedLabel === timerDefaultLabel) return;
+      const range = { start: fromKey(key), end: fromKey(key) };
+      const items = ensureHourBreakdown("day", range, subject);
+      const index = items.findIndex(entry => (entry.label || "").trim() === normalizedLabel);
+      if (index < 0) return;
+      items[index].hours = roundHour(Number(items[index].hours || 0) - hours);
+      if (items[index].hours <= 0) items.splice(index, 1);
+    }
+
+    function adjustDaySubjectHours(key, subject, hours) {
+      const day = ensureDay(key);
+      const nextHours = roundHour(Number(day.hours[subject] || 0) + hours);
+      day.hours[subject] = nextHours > 0 ? nextHours : 0;
+    }
+
+    function studySessionAllocations(startMs, endMs) {
+      return timerAllocationsByDate(startMs, endMs);
+    }
+
+    function studySessionRecordedHours(record) {
+      const allocations = record.allocations || studySessionAllocations(Number(record.startMs), Number(record.endMs));
+      return roundHour(Object.values(allocations).reduce((sum, units) => sum + Number(units || 0) * hourInputStep, 0));
+    }
+
+    function buildStudySession({ id, subject, label, startMs, endMs, source }) {
+      const normalizedSubject = subjectOrder.includes(subject) ? subject : "cs";
+      const normalizedLabel = (label || timerDefaultLabel).trim() || timerDefaultLabel;
+      const start = Number(startMs);
+      const end = Number(endMs);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+      const allocations = studySessionAllocations(start, end);
+      const recordedHours = roundHour(Object.values(allocations).reduce((sum, units) => sum + Number(units || 0) * hourInputStep, 0));
+      if (recordedHours <= 0) return null;
+      return {
+        id: id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        subject: normalizedSubject,
+        label: normalizedLabel,
+        startMs: start,
+        endMs: end,
+        source: source || "manual",
+        allocations,
+        recordedHours
+      };
+    }
+
+    function applyStudySession(record, direction = 1) {
+      const allocations = record.allocations || studySessionAllocations(Number(record.startMs), Number(record.endMs));
       Object.entries(allocations).forEach(([key, units]) => {
-        const hours = roundHour(units * hourInputStep);
-        if (hours <= 0) return;
-        const day = ensureDay(key);
-        day.hours[subject] = roundHour(Number(day.hours[subject] || 0) + hours);
-        addHoursToDayBreakdown(key, subject, label, hours);
-        recordedHours = roundHour(recordedHours + hours);
+        const hours = roundHour(Number(units || 0) * hourInputStep * direction);
+        if (!hours) return;
+        adjustDaySubjectHours(key, record.subject, hours);
+        if (direction > 0) addHoursToDayBreakdown(key, record.subject, record.label, hours);
+        if (direction < 0) removeHoursFromDayBreakdown(key, record.subject, record.label, Math.abs(hours));
+      });
+    }
+
+    function addStudySession(attrs) {
+      const record = buildStudySession(attrs);
+      if (!record) return 0;
+      applyStudySession(record, 1);
+      ensureMeta().studySessions.unshift(record);
+      return record.recordedHours;
+    }
+
+    function applyStudyTimerToState(segments, subject, label) {
+      let recordedHours = 0;
+      segments.forEach(segment => {
+        recordedHours = roundHour(recordedHours + addStudySession({
+          subject,
+          label,
+          startMs: segment.start,
+          endMs: segment.end,
+          source: "timer"
+        }));
       });
       return recordedHours;
     }
@@ -5189,6 +5376,12 @@
     function ensureMeta() {
       if (!state.__meta || typeof state.__meta !== "object" || Array.isArray(state.__meta)) state.__meta = {};
       if (!state.__meta.hourBreakdowns || typeof state.__meta.hourBreakdowns !== "object") state.__meta.hourBreakdowns = {};
+      if (!Array.isArray(state.__meta.studySessions)) state.__meta.studySessions = [];
+      state.__meta.studySessions = state.__meta.studySessions
+        .filter(item => item && typeof item === "object")
+        .map(item => buildStudySession(item))
+        .filter(Boolean)
+        .sort((a, b) => b.endMs - a.endMs);
       return state.__meta;
     }
 
@@ -5931,6 +6124,65 @@
       if (mobileMiniDays) mobileMiniDays.textContent = `距考试 ${daysLeft} 天`;
     }
 
+    function formatDateTimeInput(ms) {
+      const date = new Date(Number(ms));
+      if (Number.isNaN(date.getTime())) return "";
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function parseDateTimeInput(value) {
+      const time = new Date(value).getTime();
+      return Number.isFinite(time) ? time : null;
+    }
+
+    function studyRecordLabelOptions(subject, currentLabel) {
+      const labels = new Set(studyTimerLabelOptions(subject));
+      const label = (currentLabel || timerDefaultLabel).trim() || timerDefaultLabel;
+      labels.add(label);
+      return Array.from(labels);
+    }
+
+    function renderStudyRecordLibrary() {
+      const sessions = ensureMeta().studySessions;
+      return `
+        <div class="study-record-library">
+          <div class="study-record-head">
+            <strong>学习记录库</strong>
+            <span class="hint">共 ${sessions.length} 条，可修改学科、标签和起止时间</span>
+          </div>
+          <div class="study-record-list">
+            ${sessions.length ? sessions.map(record => {
+              const labels = studyRecordLabelOptions(record.subject, record.label);
+              return `
+                <div class="study-record-row" data-study-record="${record.id}">
+                  <select data-record-subject="${record.id}" aria-label="学科">
+                    ${subjectOrder.map(subject => `<option value="${subject}" ${subject === record.subject ? "selected" : ""}>${subjects[subject]}</option>`).join("")}
+                  </select>
+                  <select data-record-label="${record.id}" aria-label="标签">
+                    ${labels.map(label => `<option value="${escapeHtml(label)}" ${label === record.label ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+                  </select>
+                  <div class="study-record-time">
+                    <input type="datetime-local" value="${formatDateTimeInput(record.startMs)}" data-record-start="${record.id}" aria-label="开始时间">
+                    <input type="datetime-local" value="${formatDateTimeInput(record.endMs)}" data-record-end="${record.id}" aria-label="结束时间">
+                  </div>
+                  <span class="study-record-duration">${formatHour(studySessionRecordedHours(record))}h</span>
+                  <div>
+                    <button class="study-record-save" type="button" data-record-save="${record.id}" title="保存">✓</button>
+                    <button class="study-record-delete" type="button" data-record-delete="${record.id}" title="删除">×</button>
+                  </div>
+                </div>
+              `;
+            }).join("") : '<div class="empty">还没有通过计时器或手动确认添加的学习记录。</div>'}
+          </div>
+        </div>
+      `;
+    }
+
     function renderHourStats() {
       const range = getHourRange(selectedHourRange);
       const totals = sumHoursBetween(range.start, range.end);
@@ -5938,11 +6190,15 @@
       const maxHours = Math.max(...subjectOrder.map(subject => totals[subject]), 1);
 
       document.getElementById("hourStats").innerHTML = `
-        <div class="segmented" aria-label="学习时长范围">
-          ${Object.entries(hourRanges).map(([key, label]) => `
-            <button class="${key === selectedHourRange ? "active" : ""}" data-hour-range="${key}">${label}</button>
-          `).join("")}
+        <div class="hour-tools">
+          <div class="segmented" aria-label="学习时长范围">
+            ${Object.entries(hourRanges).map(([key, label]) => `
+              <button class="${key === selectedHourRange ? "active" : ""}" data-hour-range="${key}">${label}</button>
+            `).join("")}
+          </div>
+          <button class="record-library-toggle" type="button" data-study-record-toggle>${studyRecordLibraryOpen ? "收起记录库" : "学习记录库"}</button>
         </div>
+        ${studyRecordLibraryOpen ? renderStudyRecordLibrary() : ""}
         <div class="hour-panel" style="margin-top:12px">
           <article class="hour-box">
             <strong>${hourRanges[selectedHourRange]}数据</strong>
@@ -6001,7 +6257,67 @@
           renderHourStats();
         });
       }
+      attachStudyRecordEvents();
       attachHourBreakdownEvents(range, totals);
+    }
+
+    function attachStudyRecordEvents() {
+      const toggle = document.querySelector("[data-study-record-toggle]");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          studyRecordLibraryOpen = !studyRecordLibraryOpen;
+          renderHourStats();
+        });
+      }
+
+      document.querySelectorAll("[data-record-subject]").forEach(select => {
+        select.addEventListener("change", () => {
+          const labelSelect = document.querySelector(`[data-record-label="${select.dataset.recordSubject}"]`);
+          if (!labelSelect) return;
+          const labels = studyRecordLabelOptions(select.value, timerDefaultLabel);
+          labelSelect.innerHTML = labels.map(label => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join("");
+          labelSelect.value = timerDefaultLabel;
+        });
+      });
+
+      document.querySelectorAll("[data-record-save]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (!guardEdit()) return;
+          const id = button.dataset.recordSave;
+          const sessions = ensureMeta().studySessions;
+          const index = sessions.findIndex(record => record.id === id);
+          if (index < 0) return;
+          const subject = document.querySelector(`[data-record-subject="${id}"]`)?.value;
+          const label = document.querySelector(`[data-record-label="${id}"]`)?.value || timerDefaultLabel;
+          const startMs = parseDateTimeInput(document.querySelector(`[data-record-start="${id}"]`)?.value);
+          const endMs = parseDateTimeInput(document.querySelector(`[data-record-end="${id}"]`)?.value);
+          const nextRecord = buildStudySession({ id, subject, label, startMs, endMs, source: sessions[index].source });
+          if (!nextRecord) {
+            alert("这条记录的时间不足 6 分钟，或开始/结束时间无效，无法计入统计。");
+            return;
+          }
+          applyStudySession(sessions[index], -1);
+          sessions[index] = nextRecord;
+          applyStudySession(nextRecord, 1);
+          saveState();
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll("[data-record-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (!guardEdit()) return;
+          const id = button.dataset.recordDelete;
+          const sessions = ensureMeta().studySessions;
+          const index = sessions.findIndex(record => record.id === id);
+          if (index < 0) return;
+          if (!confirm("确定删除这条学习记录吗？对应的统计时长也会同步扣除。")) return;
+          applyStudySession(sessions[index], -1);
+          sessions.splice(index, 1);
+          saveState();
+          renderAll();
+        });
+      });
     }
 
     function hourBreakdownAllocated(items) {
@@ -6706,9 +7022,16 @@
           const labelSelect = document.querySelector(`select[data-hour-label="${key}"][data-subject="${subject}"]`);
           const hours = roundHour(Math.max(0, Number(input?.value || 0)));
           if (hours <= 0) return;
-          const day = ensureDay(key);
-          day.hours[subject] = roundHour(Number(day.hours[subject] || 0) + hours);
-          addHoursToDayBreakdown(key, subject, labelSelect?.value || timerDefaultLabel, hours);
+          const endMs = Date.now();
+          const startMs = endMs - hours * 60 * 60 * 1000;
+          const recordedHours = addStudySession({
+            subject,
+            label: labelSelect?.value || timerDefaultLabel,
+            startMs,
+            endMs,
+            source: "manual"
+          });
+          if (recordedHours <= 0) return;
           saveState();
           renderAll();
         });
