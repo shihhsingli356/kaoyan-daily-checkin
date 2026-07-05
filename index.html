@@ -954,6 +954,17 @@
       transform: translateY(-1px);
     }
 
+    .breakdown-chip.locked {
+      cursor: default;
+      color: var(--muted);
+      background: rgba(8, 19, 22, .06);
+    }
+
+    .breakdown-chip.locked:hover {
+      border-color: transparent;
+      transform: none;
+    }
+
     .breakdown-chip small {
       margin-left: 4px;
       color: currentColor;
@@ -4046,6 +4057,33 @@
       letter-spacing: 0;
     }
 
+    .study-timer-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .study-timer-field {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .study-timer-field select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid rgba(8, 19, 22, .12);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .9);
+      color: var(--ink-strong);
+      padding: 0 10px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
     .study-timer-actions {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -4144,7 +4182,8 @@
     html[data-theme="dark"] .study-timer-hide,
     html[data-theme="dark"] .study-timer-actions button,
     html[data-theme="dark"] .study-history-delete,
-    html[data-theme="dark"] .study-history-row {
+    html[data-theme="dark"] .study-history-row,
+    html[data-theme="dark"] .study-timer-field select {
       border-color: rgba(255, 250, 240, .15);
       background: rgba(24, 34, 31, .96);
       color: var(--ink-strong);
@@ -4235,6 +4274,16 @@
     </div>
     <div class="study-timer-body">
       <div class="study-timer-time" id="studyTimerDisplay">00:00:00</div>
+      <div class="study-timer-fields">
+        <label class="study-timer-field">
+          科目
+          <select id="studyTimerSubject"></select>
+        </label>
+        <label class="study-timer-field">
+          标签
+          <select id="studyTimerLabel"></select>
+        </label>
+      </div>
       <div class="study-timer-actions">
         <button class="primary" id="studyTimerStart" type="button">开始</button>
         <button id="studyTimerPause" type="button">暂停</button>
@@ -4352,6 +4401,10 @@
     const cloudTableName = "checkin_states";
     const publicSnapshotTableName = "public_checkin_snapshots";
     const publicSnapshotId = "latest";
+    const hourInputStep = 0.1;
+    const timerUnitMs = 6 * 60 * 1000;
+    const timerRoundUpMs = 3 * 60 * 1000;
+    const timerDefaultLabel = "其他";
     const bundledCloudConfig = {
       url: "https://kiglmfqpnojaoxjmfsjd.supabase.co",
       anonKey: "sb_publishable_7OKkqbzItewaalwy1lwidQ_SqGk4vog"
@@ -4771,6 +4824,16 @@
       }
     }
 
+    function normalizeStudyTimerSegments(segments) {
+      if (!Array.isArray(segments)) return [];
+      return segments
+        .map(segment => ({
+          start: Number(segment?.start || 0),
+          end: Number(segment?.end || 0)
+        }))
+        .filter(segment => Number.isFinite(segment.start) && Number.isFinite(segment.end) && segment.end > segment.start);
+    }
+
     function loadStudyTimer() {
       try {
         const raw = localStorage.getItem(studyTimerStorageKey);
@@ -4778,11 +4841,15 @@
         return {
           elapsedMs: Math.max(0, Number(parsed.elapsedMs || 0)),
           startedAt: parsed.startedAt ? Number(parsed.startedAt) : null,
+          sessionStartedAt: parsed.sessionStartedAt ? Number(parsed.sessionStartedAt) : null,
           running: Boolean(parsed.running && parsed.startedAt),
+          segments: normalizeStudyTimerSegments(parsed.segments),
+          subject: subjectOrder.includes(parsed.subject) ? parsed.subject : "cs",
+          label: typeof parsed.label === "string" && parsed.label.trim() ? parsed.label.trim() : timerDefaultLabel,
           history: Array.isArray(parsed.history) ? parsed.history.slice(0, 3) : []
         };
       } catch {
-        return { elapsedMs: 0, startedAt: null, running: false, history: [] };
+        return { elapsedMs: 0, startedAt: null, sessionStartedAt: null, running: false, segments: [], subject: "cs", label: timerDefaultLabel, history: [] };
       }
     }
 
@@ -4790,9 +4857,9 @@
       localStorage.setItem(studyTimerStorageKey, JSON.stringify(studyTimer));
     }
 
-    function currentStudyTimerMs() {
+    function currentStudyTimerMs(now = Date.now()) {
       if (!studyTimer.running || !studyTimer.startedAt) return studyTimer.elapsedMs;
-      return studyTimer.elapsedMs + Math.max(0, Date.now() - studyTimer.startedAt);
+      return studyTimer.elapsedMs + Math.max(0, now - studyTimer.startedAt);
     }
 
     function formatStudyTimer(ms) {
@@ -4814,14 +4881,149 @@
       });
     }
 
+    function roundHour(value) {
+      return Number((Math.round(Number(value || 0) * 10) / 10).toFixed(1));
+    }
+
+    function studyTimerLabelOptions(subject) {
+      const labels = new Set([timerDefaultLabel]);
+      const meta = ensureMeta();
+      Object.values(meta.hourBreakdowns || {}).forEach(group => {
+        const items = group && group[subject];
+        if (!Array.isArray(items)) return;
+        items.forEach(item => {
+          const label = typeof item.label === "string" ? item.label.trim() : "";
+          if (label && label !== "未命名") labels.add(label);
+        });
+      });
+      return Array.from(labels);
+    }
+
+    function syncStudyTimerSelection() {
+      if (!subjectOrder.includes(studyTimer.subject)) studyTimer.subject = "cs";
+      const labels = studyTimerLabelOptions(studyTimer.subject);
+      if (!labels.includes(studyTimer.label)) studyTimer.label = timerDefaultLabel;
+      return labels;
+    }
+
+    function timestampDateKey(ms) {
+      return dateKey(new Date(ms));
+    }
+
+    function nextDayStartMs(ms) {
+      const date = new Date(ms);
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime();
+    }
+
+    function segmentCrossesDay(startMs, endMs) {
+      if (endMs <= startMs) return false;
+      return timestampDateKey(startMs) !== timestampDateKey(endMs - 1);
+    }
+
+    function allocationDateForFullTimerUnit(startMs, endMs) {
+      if (!segmentCrossesDay(startMs, endMs)) return timestampDateKey(startMs);
+      const boundary = nextDayStartMs(startMs);
+      const beforeMidnight = Math.max(0, boundary - startMs);
+      const afterMidnight = Math.max(0, endMs - boundary);
+      return beforeMidnight >= afterMidnight ? timestampDateKey(startMs) : timestampDateKey(endMs - 1);
+    }
+
+    function timerAllocationsByDate(startMs, endMs) {
+      const durationMs = Math.max(0, endMs - startMs);
+      const fullUnits = Math.floor(durationMs / timerUnitMs);
+      const remainderMs = durationMs - fullUnits * timerUnitMs;
+      const allocations = {};
+      const addUnit = key => {
+        if (key < dateKey(startDate) || key > dateKey(endDate)) return;
+        allocations[key] = (allocations[key] || 0) + 1;
+      };
+
+      for (let index = 0; index < fullUnits; index += 1) {
+        const unitStart = startMs + index * timerUnitMs;
+        addUnit(allocationDateForFullTimerUnit(unitStart, unitStart + timerUnitMs));
+      }
+
+      const remainderStart = startMs + fullUnits * timerUnitMs;
+      if (fullUnits === 0) {
+        if (segmentCrossesDay(remainderStart, endMs) && remainderMs > timerRoundUpMs) addUnit(timestampDateKey(remainderStart));
+        return allocations;
+      }
+      if (remainderMs > timerRoundUpMs) {
+        addUnit(timestampDateKey(remainderStart));
+      }
+      return allocations;
+    }
+
+    function studyTimerSegmentsForSettlement(finishedAtMs, durationMs) {
+      const segments = normalizeStudyTimerSegments(studyTimer.segments);
+      if (studyTimer.running && studyTimer.startedAt) {
+        segments.push({ start: Number(studyTimer.startedAt), end: finishedAtMs });
+      }
+      const coveredMs = segments.reduce((sum, segment) => sum + segment.end - segment.start, 0);
+      const missingMs = Math.max(0, durationMs - coveredMs);
+      if (missingMs > 1000) {
+        const fallbackEnd = segments.length ? Math.min(...segments.map(segment => segment.start)) : finishedAtMs;
+        segments.unshift({ start: fallbackEnd - missingMs, end: fallbackEnd });
+      }
+      return segments;
+    }
+
+    function addHoursToDayBreakdown(key, subject, label, hours) {
+      const normalizedLabel = (label || timerDefaultLabel).trim() || timerDefaultLabel;
+      if (normalizedLabel === timerDefaultLabel) return;
+      const range = { start: fromKey(key), end: fromKey(key) };
+      const items = ensureHourBreakdown("day", range, subject);
+      let item = items.find(entry => (entry.label || "").trim() === normalizedLabel);
+      if (!item) {
+        item = {
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          label: normalizedLabel,
+          hours: 0
+        };
+        items.push(item);
+      }
+      item.hours = roundHour(Number(item.hours || 0) + hours);
+    }
+
+    function applyStudyTimerToState(segments, subject, label) {
+      const allocations = {};
+      segments.forEach(segment => {
+        const segmentAllocations = timerAllocationsByDate(segment.start, segment.end);
+        Object.entries(segmentAllocations).forEach(([key, units]) => {
+          allocations[key] = (allocations[key] || 0) + units;
+        });
+      });
+      let recordedHours = 0;
+      Object.entries(allocations).forEach(([key, units]) => {
+        const hours = roundHour(units * hourInputStep);
+        if (hours <= 0) return;
+        const day = ensureDay(key);
+        day.hours[subject] = roundHour(Number(day.hours[subject] || 0) + hours);
+        addHoursToDayBreakdown(key, subject, label, hours);
+        recordedHours = roundHour(recordedHours + hours);
+      });
+      return recordedHours;
+    }
+
     function renderStudyTimer() {
       const display = document.getElementById("studyTimerDisplay");
       const startButton = document.getElementById("studyTimerStart");
       const pauseButton = document.getElementById("studyTimerPause");
+      const subjectSelect = document.getElementById("studyTimerSubject");
+      const labelSelect = document.getElementById("studyTimerLabel");
       const history = document.getElementById("studyTimerHistory");
-      if (!display || !startButton || !pauseButton || !history) return;
+      if (!display || !startButton || !pauseButton || !subjectSelect || !labelSelect || !history) return;
 
-      display.textContent = formatStudyTimer(currentStudyTimerMs());
+      const labels = syncStudyTimerSelection();
+      const durationMs = currentStudyTimerMs();
+      const selectionLocked = studyTimer.running || durationMs > 0;
+      display.textContent = formatStudyTimer(durationMs);
+      subjectSelect.innerHTML = subjectOrder.map(subject => `<option value="${subject}">${subjects[subject]}</option>`).join("");
+      subjectSelect.value = studyTimer.subject;
+      subjectSelect.disabled = selectionLocked;
+      labelSelect.innerHTML = labels.map(label => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join("");
+      labelSelect.value = studyTimer.label;
+      labelSelect.disabled = selectionLocked;
       startButton.textContent = studyTimer.running ? "继续中" : "开始";
       startButton.disabled = studyTimer.running;
       pauseButton.disabled = !studyTimer.running;
@@ -4829,11 +5031,23 @@
         <div class="study-history-row">
           <div>
             <b>${formatStudyTimer(item.durationMs)}</b>
-            <span>${formatStudyTimerDate(item.finishedAt)}</span>
+            <span>${formatStudyTimerDate(item.finishedAt)} · ${subjects[item.subject] || ""} · ${escapeHtml(item.label || timerDefaultLabel)} · ${Number(item.recordedHours || 0) > 0 ? `记 ${formatHour(item.recordedHours)}h` : "未计入"}</span>
           </div>
           <button class="study-history-delete" type="button" data-study-history-delete="${item.id}" title="删除">×</button>
         </div>
       `).join("") : '<div class="study-history-empty">暂无计时记录</div>';
+
+      subjectSelect.onchange = () => {
+        studyTimer.subject = subjectSelect.value;
+        studyTimer.label = timerDefaultLabel;
+        saveStudyTimer();
+        renderStudyTimer();
+      };
+      labelSelect.onchange = () => {
+        studyTimer.label = labelSelect.value || timerDefaultLabel;
+        saveStudyTimer();
+        renderStudyTimer();
+      };
 
       document.querySelectorAll("[data-study-history-delete]").forEach(button => {
         button.addEventListener("click", () => {
@@ -4867,8 +5081,17 @@
 
     function startStudyTimer() {
       if (studyTimer.running) return;
+      if (!guardEdit()) return;
+      const now = Date.now();
+      syncStudyTimerSelection();
+      if (currentStudyTimerMs(now) <= 0) {
+        studyTimer.segments = [];
+        studyTimer.sessionStartedAt = now;
+      } else if (!studyTimer.sessionStartedAt) {
+        studyTimer.sessionStartedAt = now - currentStudyTimerMs(now);
+      }
       studyTimer.running = true;
-      studyTimer.startedAt = Date.now();
+      studyTimer.startedAt = now;
       saveStudyTimer();
       renderStudyTimer();
       startStudyTimerTick();
@@ -4876,7 +5099,12 @@
 
     function pauseStudyTimer() {
       if (!studyTimer.running) return;
-      studyTimer.elapsedMs = currentStudyTimerMs();
+      const now = Date.now();
+      studyTimer.elapsedMs = currentStudyTimerMs(now);
+      studyTimer.segments = normalizeStudyTimerSegments(studyTimer.segments);
+      if (studyTimer.startedAt && now > studyTimer.startedAt) {
+        studyTimer.segments.push({ start: Number(studyTimer.startedAt), end: now });
+      }
       studyTimer.running = false;
       studyTimer.startedAt = null;
       saveStudyTimer();
@@ -4885,13 +5113,24 @@
     }
 
     function resetStudyTimer() {
-      const durationMs = currentStudyTimerMs();
+      const finishedAtMs = Date.now();
+      const durationMs = currentStudyTimerMs(finishedAtMs);
+      let recordedHours = 0;
       if (durationMs >= 1000) {
+        if (!guardEdit()) return;
+        const subject = subjectOrder.includes(studyTimer.subject) ? studyTimer.subject : "cs";
+        const label = studyTimer.label || timerDefaultLabel;
+        const segments = studyTimerSegmentsForSettlement(finishedAtMs, durationMs);
+        recordedHours = applyStudyTimerToState(segments, subject, label);
+        if (recordedHours > 0) saveState();
         studyTimer.history = [
           {
             id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
             durationMs,
-            finishedAt: new Date().toISOString()
+            finishedAt: new Date(finishedAtMs).toISOString(),
+            subject,
+            label,
+            recordedHours
           },
           ...studyTimer.history
         ].slice(0, 3);
@@ -4899,9 +5138,12 @@
       studyTimer.elapsedMs = 0;
       studyTimer.running = false;
       studyTimer.startedAt = null;
+      studyTimer.sessionStartedAt = null;
+      studyTimer.segments = [];
       saveStudyTimer();
       renderStudyTimer();
       startStudyTimerTick();
+      if (recordedHours > 0) renderAll();
     }
 
     function saveState() {
@@ -5735,9 +5977,37 @@
       let remaining = Math.max(0, Number(subjectTotal || 0));
       items.forEach(item => {
         const nextHours = Math.min(Math.max(0, Number(item.hours || 0)), remaining);
-        item.hours = Number(nextHours.toFixed(2));
+        item.hours = roundHour(nextHours);
         remaining -= nextHours;
       });
+    }
+
+    function aggregateDayBreakdowns(range, subject) {
+      const meta = ensureMeta();
+      const totals = new Map();
+      for (let current = new Date(range.start); current <= range.end; current = addDays(current, 1)) {
+        const dayRange = { start: current, end: current };
+        const group = meta.hourBreakdowns[hourBreakdownRangeKey("day", dayRange)];
+        const items = group && Array.isArray(group[subject]) ? group[subject] : [];
+        items.forEach(item => {
+          const label = (item.label || "未命名").trim() || "未命名";
+          const hours = Math.max(0, Number(item.hours || 0));
+          if (hours <= 0) return;
+          totals.set(label, roundHour((totals.get(label) || 0) + hours));
+        });
+      }
+      return Array.from(totals, ([label, hours]) => ({ label, hours }));
+    }
+
+    function combineBreakdownRows(rows) {
+      const totals = new Map();
+      rows.forEach(row => {
+        const label = (row.label || "未命名").trim() || "未命名";
+        const hours = Math.max(0, Number(row.hours || 0));
+        if (hours <= 0) return;
+        totals.set(label, roundHour((totals.get(label) || 0) + hours));
+      });
+      return Array.from(totals, ([label, hours]) => ({ label, hours }));
     }
 
     function subjectFromPieClick(event, totals) {
@@ -5758,14 +6028,19 @@
 
     function breakdownRowsForDisplay(rangeKey, range, subject, subjectTotal) {
       const items = ensureHourBreakdown(rangeKey, range, subject);
-      normalizeHourBreakdown(items, subjectTotal);
-      const rows = items
-        .filter(item => Number(item.hours || 0) > 0)
-        .map(item => ({
+      const timerItems = rangeKey === "day" ? [] : aggregateDayBreakdowns(range, subject);
+      normalizeHourBreakdown(timerItems, subjectTotal);
+      const timerAllocated = hourBreakdownAllocated(timerItems);
+      const manualLimit = Math.max(0, subjectTotal - timerAllocated);
+      normalizeHourBreakdown(items, manualLimit);
+      const rows = combineBreakdownRows([
+        ...timerItems,
+        ...items.filter(item => Number(item.hours || 0) > 0).map(item => ({
           label: item.label || "未命名",
           hours: Number(item.hours || 0)
-        }));
-      const otherHours = Math.max(0, subjectTotal - hourBreakdownAllocated(items));
+        }))
+      ]);
+      const otherHours = Math.max(0, subjectTotal - timerAllocated - hourBreakdownAllocated(items));
       if (otherHours > 0 || rows.length === 0) rows.push({ label: "其他", hours: otherHours });
       return rows;
     }
@@ -5792,8 +6067,12 @@
 
     function renderHourBreakdownEditor(rangeKey, range, subject, subjectTotal) {
       const items = ensureHourBreakdown(rangeKey, range, subject);
-      normalizeHourBreakdown(items, subjectTotal);
-      const allocated = hourBreakdownAllocated(items);
+      const timerItems = rangeKey === "day" ? [] : aggregateDayBreakdowns(range, subject);
+      normalizeHourBreakdown(timerItems, subjectTotal);
+      const timerAllocated = hourBreakdownAllocated(timerItems);
+      const manualLimit = Math.max(0, subjectTotal - timerAllocated);
+      normalizeHourBreakdown(items, manualLimit);
+      const allocated = timerAllocated + hourBreakdownAllocated(items);
       const otherHours = Math.max(0, subjectTotal - allocated);
       const disabledAttr = canEditState() ? "" : "disabled";
       return `
@@ -5803,6 +6082,11 @@
             <span class="breakdown-total">已分配 ${formatHour(allocated)}h / ${formatHour(subjectTotal)}h</span>
           </div>
           <div class="breakdown-list">
+            ${timerItems.map(item => `
+              <span class="breakdown-chip locked" title="计时器自动记录">
+                ${escapeHtml(item.label)} <small>${formatHour(item.hours)}h</small>
+              </span>
+            `).join("")}
             ${items.map(item => {
               const editing = editingBreakdownId === item.id;
               if (!editing) {
@@ -5815,7 +6099,7 @@
               return `
                 <div class="breakdown-item">
                   <input type="text" value="${escapeHtml(item.label)}" placeholder="标签" data-breakdown-label="${item.id}" ${disabledAttr}>
-                  <input type="number" min="0" step="0.25" value="${item.hours || ""}" data-breakdown-hours="${item.id}" ${disabledAttr}>
+                  <input type="number" min="0" step="${hourInputStep}" value="${item.hours || ""}" data-breakdown-hours="${item.id}" ${disabledAttr}>
                   <button class="breakdown-confirm" type="button" data-breakdown-confirm="${item.id}" title="确认" ${disabledAttr}>✓</button>
                   <button class="breakdown-delete" type="button" data-breakdown-delete="${item.id}" title="删除" ${disabledAttr}>×</button>
                 </div>
@@ -5831,17 +6115,20 @@
     function attachHourBreakdownEvents(range, totals) {
       const items = ensureHourBreakdown(selectedHourRange, range, selectedHourSubject);
       const subjectTotal = totals[selectedHourSubject] || 0;
-      normalizeHourBreakdown(items, subjectTotal);
+      const timerItems = selectedHourRange === "day" ? [] : aggregateDayBreakdowns(range, selectedHourSubject);
+      normalizeHourBreakdown(timerItems, subjectTotal);
+      const manualLimit = Math.max(0, subjectTotal - hourBreakdownAllocated(timerItems));
+      normalizeHourBreakdown(items, manualLimit);
       document.querySelectorAll("[data-breakdown-add]").forEach(button => {
         button.addEventListener("click", () => {
           if (!guardEdit()) return;
           const currentAllocated = hourBreakdownAllocated(items);
-          const remaining = Math.max(0, subjectTotal - currentAllocated);
+          const remaining = Math.max(0, manualLimit - currentAllocated);
           const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
           items.push({
             id,
             label: "",
-            hours: Math.min(remaining, 0.5)
+            hours: Math.min(remaining, hourInputStep)
           });
           editingBreakdownId = id;
           saveState();
@@ -5868,7 +6155,7 @@
             .filter(entry => entry.id !== item.id)
             .reduce((sum, entry) => sum + Math.max(0, Number(entry.hours || 0)), 0);
           item.label = labelInput?.value.trim() || "未命名";
-          item.hours = Math.min(requested, Math.max(0, subjectTotal - othersTotal));
+          item.hours = roundHour(Math.min(requested, Math.max(0, manualLimit - othersTotal)));
           editingBreakdownId = null;
           saveState();
           renderHourStats();
@@ -6296,7 +6583,7 @@
               </label>
               <div class="hours-row">
                 <span>学习时长，目标 ${phase.targets[subject]}h</span>
-                <input type="number" min="0" step="0.25" data-hour="${key}" data-subject="${subject}" value="${day.hours[subject] ?? ""}" placeholder="0" ${disabledAttr}>
+                <input type="number" min="0" step="${hourInputStep}" data-hour="${key}" data-subject="${subject}" value="${day.hours[subject] ?? ""}" placeholder="0" ${disabledAttr}>
               </div>
             </article>
           `).join("")}
