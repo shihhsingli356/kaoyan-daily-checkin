@@ -1653,6 +1653,40 @@
       font-size: 13px;
     }
 
+    .hours-entry {
+      display: grid;
+      grid-template-columns: minmax(74px, 96px) minmax(86px, 120px) 34px;
+      gap: 6px;
+      align-items: center;
+      justify-content: end;
+    }
+
+    .hours-entry select {
+      height: 34px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 8px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hours-confirm {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent-strong);
+      background: rgba(15, 118, 110, .1);
+    }
+
     input[type="number"] {
       width: 86px;
       height: 34px;
@@ -3093,6 +3127,7 @@
     }
 
     html[data-theme="dark"] input[type="number"],
+    html[data-theme="dark"] .hours-entry select,
     html[data-theme="dark"] textarea {
       border-color: rgba(255, 250, 240, .24);
       background: #172622;
@@ -6584,8 +6619,14 @@
                 <span class="task-copy" title="${escapeHtml(taskTextForDate(key, subject))}">${taskTextForDate(key, subject)}</span>
               </label>
               <div class="hours-row">
-                <span>学习时长，目标 ${phase.targets[subject]}h</span>
-                <input type="number" min="0" step="${hourInputStep}" data-hour="${key}" data-subject="${subject}" value="${day.hours[subject] ?? ""}" placeholder="0" ${disabledAttr}>
+                <span>学习时长，已记 ${formatHour(day.hours[subject])}h / 目标 ${phase.targets[subject]}h</span>
+                <div class="hours-entry">
+                  <select data-hour-label="${key}" data-subject="${subject}" aria-label="${subjects[subject]}学习时长标签" ${disabledAttr}>
+                    ${studyTimerLabelOptions(subject).map(label => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join("")}
+                  </select>
+                  <input type="number" min="0" step="${hourInputStep}" data-hour="${key}" data-subject="${subject}" value="" placeholder="+0.1" aria-label="${subjects[subject]}本次增加时长" ${disabledAttr}>
+                  <button class="hours-confirm" type="button" data-hour-confirm="${key}" data-subject="${subject}" title="确认增加" ${disabledAttr}>✓</button>
+                </div>
               </div>
             </article>
           `).join("")}
@@ -6653,19 +6694,31 @@
         });
       });
 
-      document.querySelectorAll("#dailyCard input[type='number']").forEach(input => {
-        input.addEventListener("input", event => {
+      document.querySelectorAll("[data-hour-confirm]").forEach(button => {
+        button.addEventListener("click", event => {
           if (!guardEdit()) {
             renderDailyCard();
             return;
           }
-          const day = ensureDay(event.target.dataset.hour);
-          const subject = event.target.dataset.subject;
-          day.hours[subject] = event.target.value === "" ? "" : Math.max(0, Number(event.target.value));
+          const key = event.currentTarget.dataset.hourConfirm;
+          const subject = event.currentTarget.dataset.subject;
+          const input = document.querySelector(`input[data-hour="${key}"][data-subject="${subject}"]`);
+          const labelSelect = document.querySelector(`select[data-hour-label="${key}"][data-subject="${subject}"]`);
+          const hours = roundHour(Math.max(0, Number(input?.value || 0)));
+          if (hours <= 0) return;
+          const day = ensureDay(key);
+          day.hours[subject] = roundHour(Number(day.hours[subject] || 0) + hours);
+          addHoursToDayBreakdown(key, subject, labelSelect?.value || timerDefaultLabel, hours);
           saveState();
-          updateDailyActualHours(event.target.dataset.hour);
-          renderHourStats();
-          renderAllRows();
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll("#dailyCard input[type='number']").forEach(input => {
+        input.addEventListener("keydown", event => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          input.closest(".hours-entry")?.querySelector("[data-hour-confirm]")?.click();
         });
       });
 
