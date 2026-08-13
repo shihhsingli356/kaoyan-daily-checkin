@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>考研每日打卡计划</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <link rel="stylesheet" href="./assets/styles.css?v=2.0.0">
+  <link rel="stylesheet" href="./assets/styles.css?v=2.1.0">
 
 </head>
 <body>
@@ -114,6 +114,7 @@
         <div class="legend-group">
           <span><i class="dot green"></i>问题已掌握</span>
           <span><i class="dot red"></i>有未掌握问题</span>
+          <span><i class="dot gold"></i>小时规划完成</span>
         </div>
       </div>
     </section>
@@ -164,7 +165,7 @@
     </div>
 
     <footer class="version-footer" aria-label="版本信息">
-      <span>当前版本：<b id="appVersionText">2.0.0</b></span>
+      <span>当前版本：<b id="appVersionText">2.1.0</b></span>
       <button type="button" id="versionLogBtn">查看历史版本</button>
     </footer>
   </main>
@@ -174,24 +175,29 @@
       <div class="version-modal-head">
         <div>
           <strong id="versionModalTitle">历史版本日志</strong>
-          <span>当前部署版：<b id="versionModalCurrent">2.0.0</b></span>
+          <span>当前部署版：<b id="versionModalCurrent">2.1.0</b></span>
         </div>
         <div class="version-modal-actions">
           <a href="version-log.txt" target="_blank" rel="noopener">新页打开</a>
           <button type="button" id="versionModalClose">关闭</button>
         </div>
       </div>
-      <pre class="version-log-view" id="versionLogView">正在加载版本日志...</pre>
+      <nav class="version-jump-bar" id="versionJumpBar" aria-label="快速跳转到指定版本" hidden>
+        <span>快速跳转</span>
+        <div class="version-jump-list" id="versionJumpList"></div>
+      </nav>
+      <div class="version-log-view" id="versionLogView">正在加载版本日志...</div>
     </section>
   </div>
 
-  <script src="./assets/plan-data.js?v=2.0.0"></script>
-  <script src="./assets/core.js?v=2.0.0"></script>
-  <script src="./assets/storage.js?v=2.0.0"></script>
-  <script src="./assets/state.js?v=2.0.0"></script>
-  <script src="./assets/timer.js?v=2.0.0"></script>
-  <script src="./assets/cloud.js?v=2.0.0"></script>
-  <script src="./assets/render.js?v=2.0.0"></script>
-  <script src="./assets/app.js?v=2.0.0"></script>
+  <script src="./assets/plan-data.js?v=2.1.0"></script>
+  <script src="./assets/core.js?v=2.1.0"></script>
+  <script src="./assets/storage.js?v=2.1.0"></script>
+  <script src="./assets/state.js?v=2.1.0"></script>
+  <script src="./assets/timer.js?v=2.1.0"></script>
+  <script src="./assets/cloud.js?v=2.1.0"></script>
+  <script src="./assets/hour-plan.js?v=2.1.0"></script>
+  <script src="./assets/render.js?v=2.1.0"></script>
+  <script src="./assets/app.js?v=2.1.0"></script>
 </body>
 </html>

@@ -192,6 +192,73 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   renderAll();
 });
 
+function renderVersionLog(text) {
+  const view = document.getElementById("versionLogView");
+  const jumpBar = document.getElementById("versionJumpBar");
+  const jumpList = document.getElementById("versionJumpList");
+  if (!view || !jumpBar || !jumpList) return;
+
+  const matches = [...text.matchAll(/^((\d+\.\d+\.\d+)[^\r\n]*)$/gm)];
+  view.replaceChildren();
+  jumpList.replaceChildren();
+
+  if (!matches.length) {
+    view.textContent = text;
+    jumpBar.hidden = true;
+    return;
+  }
+
+  const intro = text.slice(0, matches[0].index).trim();
+  if (intro) {
+    const introBlock = document.createElement("pre");
+    introBlock.className = "version-log-intro";
+    introBlock.textContent = intro;
+    view.appendChild(introBlock);
+  }
+
+  const versions = matches.map((match, index) => {
+    const section = document.createElement("section");
+    const version = match[2];
+    section.className = "version-log-entry";
+    section.id = `version-log-${version.replaceAll(".", "-")}`;
+    section.dataset.version = version;
+
+    const heading = document.createElement("h3");
+    heading.textContent = match[1];
+    const details = document.createElement("pre");
+    const end = matches[index + 1]?.index ?? text.length;
+    details.textContent = text.slice(match.index + match[0].length, end).trim();
+    section.append(heading, details);
+    view.appendChild(section);
+    return version;
+  });
+
+  [...versions].reverse().forEach(version => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = version;
+    button.dataset.version = version;
+    button.className = version === appVersion ? "current" : "";
+    button.addEventListener("click", () => jumpToVersion(version));
+    jumpList.appendChild(button);
+  });
+  jumpBar.hidden = false;
+}
+
+function jumpToVersion(version) {
+  const target = document.querySelector(`.version-log-entry[data-version="${version}"]`);
+  const button = document.querySelector(`#versionJumpList [data-version="${version}"]`);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  target.classList.remove("is-target");
+  void target.offsetWidth;
+  target.classList.add("is-target");
+  document.querySelectorAll("#versionJumpList button").forEach(item => {
+    item.classList.toggle("selected", item === button);
+  });
+  window.setTimeout(() => target.classList.remove("is-target"), 1400);
+}
+
 async function openVersionLog() {
   const modal = document.getElementById("versionModal");
   const view = document.getElementById("versionLogView");
@@ -201,9 +268,16 @@ async function openVersionLog() {
   try {
     const response = await fetch("version-log.txt", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    view.textContent = await response.text();
+    renderVersionLog(await response.text());
   } catch (error) {
-    view.textContent = "版本日志加载失败。可以点击右上角“新页打开”直接查看 version-log.txt。";
+    const jumpBar = document.getElementById("versionJumpBar");
+    if (jumpBar) jumpBar.hidden = true;
+    view.replaceChildren();
+    const fallback = document.createElement("iframe");
+    fallback.className = "version-log-fallback";
+    fallback.src = "version-log.txt";
+    fallback.title = "历史版本日志文本";
+    view.appendChild(fallback);
   }
   document.getElementById("versionModalClose")?.focus();
 }

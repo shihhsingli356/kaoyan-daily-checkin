@@ -1,6 +1,6 @@
 function ensureDay(key) {
   if (!state[key]) {
-    state[key] = { tasks: {}, hours: {}, issues: {}, issueChecks: {}, review: "", fix: "", completedAt: "" };
+    state[key] = { tasks: {}, hours: {}, issues: {}, issueChecks: {}, review: "", fix: "", completedAt: "", hourPlan: { items: [], completed: false, completedAt: "" } };
   }
   const day = state[key];
   if (!day.tasks) day.tasks = {};
@@ -10,6 +10,24 @@ function ensureDay(key) {
   if (typeof day.review !== "string") day.review = "";
   if (typeof day.fix !== "string") day.fix = "";
   if (typeof day.completedAt !== "string") day.completedAt = "";
+  if (!day.hourPlan || typeof day.hourPlan !== "object" || Array.isArray(day.hourPlan)) {
+    day.hourPlan = { items: [], completed: false, completedAt: "" };
+  }
+  if (!Array.isArray(day.hourPlan.items)) day.hourPlan.items = [];
+  day.hourPlan.items = day.hourPlan.items
+    .filter(item => item && typeof item === "object")
+    .map(item => ({
+      id: String(item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`),
+      subject: subjectOrder.includes(item.subject) ? item.subject : "cs",
+      label: typeof item.label === "string" && item.label.trim() ? item.label.trim() : timerDefaultLabel,
+      text: typeof item.text === "string" ? item.text : "",
+      start: normalizeHourPlanTime(item.start, "08:00"),
+      end: normalizeHourPlanTime(item.end, "09:00")
+    }))
+    .filter(item => hourPlanTimeToMinutes(item.end) > hourPlanTimeToMinutes(item.start))
+    .sort((a, b) => hourPlanTimeToMinutes(a.start) - hourPlanTimeToMinutes(b.start));
+  if (typeof day.hourPlan.completed !== "boolean") day.hourPlan.completed = false;
+  if (typeof day.hourPlan.completedAt !== "string") day.hourPlan.completedAt = "";
   if (day.review.trim() && !issueCategoryOrder.some(categoryKey => String(day.issues[categoryKey] || "").trim())) {
     day.issues.cs_data = day.review;
   }
@@ -1493,6 +1511,7 @@ function renderCalendar() {
     const inRange = current >= startDate && current <= endDate;
     const status = inRange ? dayStatus(key) : "out";
     const issueClass = inRange && hasIssue(key) ? (allIssuesMastered(key) ? "mastered" : "open") : "";
+    const hourPlanComplete = inRange && ensureDay(key).hourPlan.completed;
     const marks = inRange ? activeSubjectsFor(key).map(subject => {
       const done = ensureDay(key).tasks[subject];
       return `<span class="subject-mark ${done ? "done" : ""}" style="--mark-color:${subjectColors[subject]}" title="${subjects[subject]}${done ? "已完成" : "待完成"}"></span>`;
@@ -1502,6 +1521,7 @@ function renderCalendar() {
       !inMonth || !inRange ? "out" : "",
       key === selectedKey ? "selected" : "",
       key === todayKey ? "today" : "",
+      hourPlanComplete ? "hour-plan-complete" : "",
       status
     ].join(" ");
     cells.push(`
@@ -1509,6 +1529,7 @@ function renderCalendar() {
         <span class="badge">${current.getDate()}</span>
         ${marks ? `<span class="subject-marks">${marks}</span>` : ""}
         ${issueClass ? `<span class="issue-mark ${issueClass}" title="${issueClass === "mastered" ? "问题已确认掌握" : "有未掌握问题"}"></span>` : ""}
+        ${hourPlanComplete ? '<span class="hour-plan-mark" title="按小时规划已完成">✦</span>' : ""}
       </button>
     `);
   }
@@ -1560,6 +1581,10 @@ function renderDailyCard() {
         </div>
         <strong class="daily-date">${key} 周${weekdays[selectedDate.getDay()]}</strong>
         <span class="next-pill">${nextAction}</span>
+      </div>
+      <div class="daily-view-switch" role="tablist" aria-label="每日规划模式">
+        <button type="button" role="tab" data-daily-mode="tasks" class="${dailyPlanningMode === "tasks" ? "active" : ""}" aria-selected="${dailyPlanningMode === "tasks"}">任务规划</button>
+        <button type="button" role="tab" data-daily-mode="hourly" class="${dailyPlanningMode === "hourly" ? "active" : ""}" aria-selected="${dailyPlanningMode === "hourly"}">按小时规划</button>
       </div>
       <div class="daily-meter" aria-label="今日完成概览">
         <div class="daily-meter-top">
@@ -1636,6 +1661,12 @@ function renderDailyCard() {
     </div>
   `;
 
+  if (dailyPlanningMode === "hourly") {
+    dailyCard.querySelectorAll(".reminder, .task-grid, .review").forEach(element => { element.hidden = true; });
+    const anchor = dailyCard.querySelector(".readonly-note") || dailyCard.querySelector(".daily-head");
+    anchor.insertAdjacentHTML("afterend", renderHourPlan(key, readOnly));
+  }
+
   attachDailyEvents();
 }
 
@@ -1648,6 +1679,15 @@ function updateDailyActualHours(key) {
 }
 
 function attachDailyEvents() {
+  document.querySelectorAll("[data-daily-mode]").forEach(button => {
+    button.addEventListener("click", () => {
+      dailyPlanningMode = button.dataset.dailyMode;
+      hourPlanComposerOpen = false;
+      editingHourPlanTaskId = null;
+      renderDailyCard();
+    });
+  });
+
   document.querySelectorAll("#dailyCard input[type='checkbox']").forEach(input => {
     input.addEventListener("change", event => {
       if (!guardEdit()) {
@@ -1744,6 +1784,8 @@ function attachDailyEvents() {
       renderDailyCard();
     });
   });
+
+  attachHourPlanEvents(dateKey(selectedDate));
 }
 
 function renderIssuesPanel() {
